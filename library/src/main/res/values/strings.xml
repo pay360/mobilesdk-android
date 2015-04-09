@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">Library</string>
+    <string name="app_name">PayPoint SDK</string>
+
+    <!--10.0.3.2 is the localhost for Genymotion-->
+    <string name="paypoint_server_url">http://10.0.3.2:5000/mobileapi/transactions</string>
+    <string name="header_authorization_token">Bearer %s</string>
 </resources>
