@@ -10,4 +10,16 @@ public class PaymentCard {
     private String cardScheme;
 
     private String lastFour;
+
+    public String getCardUsageType() {
+        return cardUsageType;
+    }
+
+    public String getCardScheme() {
+        return cardScheme;
+    }
+
+    public String getLastFour() {
+        return lastFour;
+    }
 }

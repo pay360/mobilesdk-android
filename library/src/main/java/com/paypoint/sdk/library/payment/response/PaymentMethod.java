@@ -9,4 +9,8 @@ public class PaymentMethod {
 
     @SerializedName("card")
     private PaymentCard card;
+
+    public PaymentCard getCard() {
+        return card;
+    }
 }

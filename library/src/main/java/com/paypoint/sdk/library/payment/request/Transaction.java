@@ -1,6 +1,8 @@
 package com.paypoint.sdk.library.payment.request;
 
 import com.google.gson.annotations.SerializedName;
+import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
+import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
 
 /**
  * Created by HendryP on 08/04/2015.
@@ -45,5 +47,27 @@ public class Transaction {
     public Transaction setDeferred(boolean deferred) {
         this.deferred = deferred;
         return this;
+    }
+
+    public float getAmount() {
+        return amount;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void validateData() throws TransactionInvalidAmountException,
+            TransactionInvalidCurrencyException {
+        // check amount present
+        if (getAmount() <= 0) {
+            throw new TransactionInvalidAmountException();
+        }
+
+        // check currency present
+        // TODO need to do any sanity check on the value?
+        if (getCurrency() == null) {
+            throw new TransactionInvalidCurrencyException();
+        }
     }
 }

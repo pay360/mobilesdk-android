@@ -2,7 +2,10 @@ package com.paypoint.sdk;
 
 import android.test.AndroidTestCase;
 
+import com.paypoint.sdk.library.exception.CardInvalidPanException;
+import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
+import com.paypoint.sdk.library.payment.PaymentSuccess;
 import com.paypoint.sdk.library.payment.request.BillingAddress;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.Transaction;
@@ -54,14 +57,14 @@ public class PaymentManagerTest extends AndroidTestCase {
         responseTimeout = TIMEOUT_SIXTY_SECONDS;
     }
 
-    public void testTokenValid() {
+    public void testTokenValid() throws Exception {
 
         makePayment();
 
         Assert.assertTrue(success);
     }
 
-    public void testTokenInvalid() {
+    public void testTokenInvalid() throws Exception {
 
         credentials.setToken("UNAUTHORIZED_TOKEN");
 
@@ -70,7 +73,7 @@ public class PaymentManagerTest extends AndroidTestCase {
         Assert.assertFalse(success);
     }
 
-    public void testTokenExpired() {
+    public void testTokenExpired() throws Exception {
 
         credentials.setToken("EXPIRED_TOKEN");
 
@@ -79,7 +82,7 @@ public class PaymentManagerTest extends AndroidTestCase {
         Assert.assertFalse(success);
     }
 
-    public void testCardDeclined() {
+    public void testCardDeclined() throws Exception {
 
         card.setPan("9900000000005282");
 
@@ -88,7 +91,7 @@ public class PaymentManagerTest extends AndroidTestCase {
         Assert.assertFalse(success);
     }
 
-    public void testCardWaitFail() {
+    public void testCardWaitFail() throws Exception {
         // default is to wait 60s - this card returns after 61s
         card.setPan("9900000000000168");
 
@@ -97,7 +100,7 @@ public class PaymentManagerTest extends AndroidTestCase {
         Assert.assertFalse(success);
     }
 
-    public void testCardWaitSuccess() {
+    public void testCardWaitSuccess() throws Exception {
         // default is to wait 60s - this card returns after 61s
         card.setPan("9900000000000168");
 
@@ -110,18 +113,75 @@ public class PaymentManagerTest extends AndroidTestCase {
         Assert.assertTrue(success);
     }
 
-    private void makePayment() {
+    public void testCardEmptyPan() throws Exception {
+        card.setPan("");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidPanException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardNullPan() throws Exception {
+        card.setPan(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidPanException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardShortPan() throws Exception {
+        card.setPan("12346786786786");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidPanException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardLongPan() throws Exception {
+        card.setPan("99000000000051591123");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidPanException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardAlphPan() throws Exception {
+        card.setPan("A900000000005159");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidPanException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    add more tests for CCV etc
+
+    private void makePayment() throws Exception {
         success = false;
 
         pm.makePayment(transaction, card, address, credentials, new PaymentManager.MakePaymentCallback() {
             @Override
-            public void paymentSucceeded() {
+            public void paymentSucceeded(PaymentSuccess response) {
                 responseReceived = true;
                 success = true;
             }
 
             @Override
-            public void paymentFailed() {
+            public void paymentFailed(PaymentError response) {
                 responseReceived = true;
                 success = false;
             }

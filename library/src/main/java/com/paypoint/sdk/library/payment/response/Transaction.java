@@ -26,4 +26,28 @@ public class Transaction {
 
     @SerializedName("transactionTime")
     private String transactionTime;
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public String getMerchantReference() {
+        return merchantReference;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public float getAmount() {
+        return amount;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getTransactionTime() {
+        return transactionTime;
+    }
 }

@@ -5,6 +5,13 @@ import android.content.Context;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.R;
+import com.paypoint.sdk.library.exception.CardExpiredException;
+import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
+import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
+import com.paypoint.sdk.library.exception.CardInvalidPanException;
+import com.paypoint.sdk.library.exception.NoNetworkException;
+import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
+import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
 import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
@@ -27,6 +34,7 @@ import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 
+
 /**
  * Created by HendryP on 08/04/2015.
  */
@@ -37,13 +45,14 @@ public class PaymentManager {
 
     public interface MakePaymentCallback {
 
-        public void paymentSucceeded();
+        public void paymentSucceeded(PaymentSuccess success);
 
-        public void paymentFailed();
+        public void paymentFailed(PaymentError error);
     }
 
     private Context context;
     private int responseTimeoutSeconds = HTTP_TIMEOUT_RESPONSE;
+
 
     public PaymentManager(Context context) {
         this.context = context;
@@ -76,11 +85,14 @@ public class PaymentManager {
     }
 
     public void makePayment(Transaction transaction, PaymentCard card, BillingAddress address,
-                            PayPointCredentials credentials, final MakePaymentCallback callback) {
+                            PayPointCredentials credentials, final MakePaymentCallback callback)
+            throws NoNetworkException, CardExpiredException, CardInvalidPanException,
+            CardInvalidLuhnException, CardInvalidCv2Exception, TransactionInvalidAmountException,
+            TransactionInvalidCurrencyException {
 
         // check network
         if (!NetworkManager.hasConnection(context)) {
-            // TODO throw exception
+            throw new NoNetworkException();
         }
 
         // validate request data
@@ -108,24 +120,26 @@ public class PaymentManager {
                 });
     }
 
-    private void validateData(Transaction transaction, PaymentCard card, BillingAddress address) {
+    private void validateData(Transaction transaction, PaymentCard card, BillingAddress address)
+            throws CardExpiredException, CardInvalidPanException, CardInvalidLuhnException,
+            CardInvalidCv2Exception, TransactionInvalidAmountException,
+            TransactionInvalidCurrencyException {
+
         // check null transaction
+        if (transaction == null) {
+            throw new IllegalArgumentException();
+        }
 
         // check null card
+        if (card == null) {
+            throw new IllegalArgumentException();
+        }
 
-        // check null address
+        // validate card data
+        card.validateData();
 
-        // check pan
-
-        // check expiry
-
-        // check luhn
-
-        // check ccv
-
-        // check amount present
-
-        // check currency present
+        // validate transaction data
+        transaction.validateData();
     }
 
     private void onPaymentSucceeded(PaymentResponse paymentResponse, Response response,
@@ -134,20 +148,44 @@ public class PaymentManager {
 
             if (paymentResponse != null &&
                 paymentResponse.isSuccessful()) {
-                // payment successful
-                callback.paymentSucceeded();
+                // payment successful - build success object
+                PaymentSuccess success = new PaymentSuccess();
+
+                success.setAmount(paymentResponse.getAmount());
+                success.setCurrency(paymentResponse.getCurrency());
+                success.setTransactionId(paymentResponse.getTransactionId());
+                success.setMerchantReference(paymentResponse.getMerchantRef());
+                success.setLastFour(paymentResponse.getLastFourDigits());
+
+                callback.paymentSucceeded(success);
             } else {
                 // payment failed
-                callback.paymentFailed();
+                PaymentError error = new PaymentError();
+                error.setKind(PaymentError.Kind.PAYPOINT);
+                error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
+                error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+
+                callback.paymentFailed(error);
             }
         }
     }
 
-    private void onPaymentFailed(RetrofitError error,
-                                  MakePaymentCallback callback) {
+    private void onPaymentFailed(RetrofitError retrofitError,
+                                 MakePaymentCallback callback) {
         if (callback != null) {
-            // TODO in error response return HTTP response code, if timeout, reason code, reason string etc
-            callback.paymentFailed();
+            PaymentError error = new PaymentError();
+
+            error.setKind(PaymentError.Kind.NETWORK);
+
+            // TODO handle app error parsing JSON?
+
+            if (retrofitError != null) {
+
+                if (retrofitError.getResponse() != null) {
+                    error.getNetworkError().setHttpStatusCode(retrofitError.getResponse().getStatus());
+                }
+            }
+            callback.paymentFailed(error);
         }
     }
 }

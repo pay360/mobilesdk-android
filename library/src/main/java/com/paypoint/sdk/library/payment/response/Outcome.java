@@ -20,6 +20,18 @@ public class Outcome {
     @SerializedName("reasonMessage")
     private String reasonMessage;
 
+    public String getStatus() {
+        return status;
+    }
+
+    public int getReasonCode() {
+        return reasonCode;
+    }
+
+    public String getReasonMessage() {
+        return reasonMessage;
+    }
+
     public boolean isSuccessful() {
         return RESPONSE_SUCCESS.equalsIgnoreCase(status);
     }

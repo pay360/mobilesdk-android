@@ -29,5 +29,6 @@ dependencies {
 
     compile project(':library')
 
+    androidTestCompile 'junit:junit:4.+'
     androidTestCompile 'com.jayway.awaitility:awaitility:1.6.3'
 }
