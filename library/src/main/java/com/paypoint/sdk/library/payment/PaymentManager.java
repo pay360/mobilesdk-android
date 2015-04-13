@@ -1,10 +1,10 @@
 package com.paypoint.sdk.library.payment;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.paypoint.sdk.library.R;
 import com.paypoint.sdk.library.exception.CardExpiredException;
 import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
 import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
@@ -18,9 +18,9 @@ import com.paypoint.sdk.library.network.PayPointService;
 import com.paypoint.sdk.library.payment.request.BillingAddress;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
-import com.paypoint.sdk.library.payment.request.PaymentRequest;
+import com.paypoint.sdk.library.payment.request.Request;
 import com.paypoint.sdk.library.payment.request.Transaction;
-import com.paypoint.sdk.library.payment.response.PaymentResponse;
+import com.paypoint.sdk.library.payment.response.Response;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
 
@@ -31,7 +31,6 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.android.AndroidLog;
 import retrofit.client.OkClient;
-import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 
 
@@ -41,7 +40,7 @@ import retrofit.converter.GsonConverter;
 public class PaymentManager {
 
     private static final int HTTP_TIMEOUT_CONNECTION    = 20; // 20s
-    private static final int HTTP_TIMEOUT_RESPONSE      = 60; // 20s
+    private static final int HTTP_TIMEOUT_RESPONSE      = 60; // 60s
 
     public interface MakePaymentCallback {
 
@@ -52,7 +51,6 @@ public class PaymentManager {
 
     private Context context;
     private int responseTimeoutSeconds = HTTP_TIMEOUT_RESPONSE;
-
 
     public PaymentManager(Context context) {
         this.context = context;
@@ -84,8 +82,7 @@ public class PaymentManager {
         this.responseTimeoutSeconds = responseTimeoutSeconds;
     }
 
-    public void makePayment(Transaction transaction, PaymentCard card, BillingAddress address,
-                            PayPointCredentials credentials, final MakePaymentCallback callback)
+    public void makePayment(final PaymentRequest request)
             throws NoNetworkException, CardExpiredException, CardInvalidPanException,
             CardInvalidLuhnException, CardInvalidCv2Exception, TransactionInvalidAmountException,
             TransactionInvalidCurrencyException {
@@ -96,53 +93,68 @@ public class PaymentManager {
         }
 
         // validate request data
-        validateData(transaction, card, address);
+        validateData(request);
 
         // call REST endpoint
-        PaymentRequest request = new PaymentRequest().setTransaction(transaction)
-                .setPaymentMethod(new PaymentMethod().setCard(card).setBillingAddress(address));
+        Request jsonRequest = new Request().setTransaction(request.getTransaction())
+                .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
+                .setBillingAddress(request.getAddress()));
 
-        PayPointService service = getService(context.getString(R.string.paypoint_server_url),
+        PayPointService service = getService(request.getUrl(),
                 responseTimeoutSeconds);
 
-        service.makePayment(request, context.getString(R.string.header_authorization_token,
-                credentials.getToken()), credentials.getInstallationId(),
-                new Callback<PaymentResponse>() {
+        service.makePayment(jsonRequest, "Bearer " +
+                request.getCredentials().getToken(), request.getCredentials().getInstallationId(),
+                new Callback<Response>() {
                     @Override
-                    public void success(PaymentResponse paymentResponse, Response response) {
-                        onPaymentSucceeded(paymentResponse, response, callback);
+                    public void success(Response paymentResponse, retrofit.client.Response response) {
+                        onPaymentSucceeded(paymentResponse, response, request.getCallback());
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                       onPaymentFailed(error, callback);
+                       onPaymentFailed(error, request.getCallback());
                     }
                 });
     }
 
-    private void validateData(Transaction transaction, PaymentCard card, BillingAddress address)
+    private void validateData(PaymentRequest request)
             throws CardExpiredException, CardInvalidPanException, CardInvalidLuhnException,
             CardInvalidCv2Exception, TransactionInvalidAmountException,
             TransactionInvalidCurrencyException {
 
+        if (request == null) {
+            throw new IllegalArgumentException("Request is a required field");
+        }
+
         // check null transaction
-        if (transaction == null) {
-            throw new IllegalArgumentException();
+        if (TextUtils.isEmpty(request.getUrl())) {
+            throw new IllegalArgumentException("URL is a required field");
+        }
+
+        // check null transaction
+        if (request.getCredentials() == null) {
+            throw new IllegalArgumentException("Credentials is a required field");
+        }
+
+        // check null transaction
+        if (request.getTransaction() == null) {
+            throw new IllegalArgumentException("Transaction is a required field");
         }
 
         // check null card
-        if (card == null) {
-            throw new IllegalArgumentException();
+        if (request.getCard() == null) {
+            throw new IllegalArgumentException("Card is a required field");
         }
 
-        // validate card data
-        card.validateData();
-
         // validate transaction data
-        transaction.validateData();
+        request.getTransaction().validateData();
+
+        // validate card data
+        request.getCard().validateData();
     }
 
-    private void onPaymentSucceeded(PaymentResponse paymentResponse, Response response,
+    private void onPaymentSucceeded(Response paymentResponse, retrofit.client.Response response,
                                   MakePaymentCallback callback) {
         if (callback != null) {
 

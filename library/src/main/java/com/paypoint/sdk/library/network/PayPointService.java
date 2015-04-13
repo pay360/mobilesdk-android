@@ -1,12 +1,9 @@
 package com.paypoint.sdk.library.network;
 
-import android.support.v7.internal.view.menu.MenuPresenter;
-
-import com.paypoint.sdk.library.payment.request.PaymentRequest;
-import com.paypoint.sdk.library.payment.response.PaymentResponse;
+import com.paypoint.sdk.library.payment.request.Request;
+import com.paypoint.sdk.library.payment.response.Response;
 
 import retrofit.Callback;
-import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.Header;
 import retrofit.http.Headers;
@@ -20,8 +17,8 @@ public interface PayPointService {
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/{installationId}/payment")
-    void makePayment(@Body PaymentRequest request,
+    void makePayment(@Body Request request,
                     @Header("Authorization") String token,
                     @Path("installationId") String installationId,
-                    Callback<PaymentResponse> callback);
+                    Callback<Response> callback);
 }
