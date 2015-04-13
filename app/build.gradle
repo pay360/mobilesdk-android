@@ -29,6 +29,12 @@ dependencies {
 
     compile project(':library')
 
+    testCompile 'org.robolectric:robolectric:2.4'
+    testCompile 'junit:junit:4.+'
+    testCompile 'com.jayway.awaitility:awaitility:1.6.3'
+
     androidTestCompile 'junit:junit:4.+'
     androidTestCompile 'com.jayway.awaitility:awaitility:1.6.3'
+
+
 }

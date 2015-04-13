@@ -13,9 +13,14 @@ import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 
 import junit.framework.Assert;
+import junit.framework.TestCase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +33,9 @@ import static com.jayway.awaitility.Awaitility.await;
  * When: 09/04/2015
  * What:
  */
-public class PaymentManagerTest extends AndroidTestCase implements PaymentManager.MakePaymentCallback {
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest="./app/src/main/AndroidManifest.xml", emulateSdk = 18, reportSdk = 18)
+public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
     private static final int TIMEOUT_SIXTY_SECONDS = 60;
 
@@ -42,12 +49,15 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
     private PayPointCredentials credentials;
     private int responseTimeout;
     private PaymentRequest request;
-    private String url = "http://10.0.3.2:5000/mobileapi/transactions";
+    private String url = "http://127.0.0.1:5000/mobileapi/transaction";
 
-    @Override
+    @Before
     public void setUp() {
 
-        pm = new PaymentManager(getContext());
+        pm = new PaymentManager(Robolectric.application);
+
+        Robolectric.getFakeHttpLayer().interceptHttpRequests(false);
+        Robolectric.getFakeHttpLayer().interceptResponseContent(false);
 
         transaction = new Transaction().setAmount(10).setCurrency("GBP");
 
@@ -61,7 +71,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         credentials = new PayPointCredentials().setInstallationId("1212312")
                 .setToken("VALID_TOKEN");
 
-        responseTimeout = TIMEOUT_SIXTY_SECONDS;
+        responseTimeout = 10;//TIMEOUT_SIXTY_SECONDS;
 
         request = new PaymentRequest();
         request.setTransaction(transaction)
@@ -190,11 +200,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
 
         pm.makePayment(request);
 
-        try {
-            await().atMost(responseTimeout, TimeUnit.SECONDS).until(responseReceived());
-        } catch (Throwable e) {
-            success = false;
-        }
+        await().atMost(responseTimeout, TimeUnit.SECONDS).until(responseReceived());
     }
 
     @Override
@@ -216,6 +222,5 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
             }
         };
     }
-
 
 }
