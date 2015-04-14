@@ -1,5 +1,7 @@
 package com.paypoint.sdk.library.payment.request;
 
+import android.text.TextUtils;
+
 import com.google.gson.annotations.SerializedName;
 import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
 import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
@@ -66,7 +68,7 @@ public class Transaction {
 
         // check currency present
         // TODO need to do any sanity check on the value?
-        if (getCurrency() == null) {
+        if (TextUtils.isEmpty(getCurrency())) {
             throw new TransactionInvalidCurrencyException();
         }
     }

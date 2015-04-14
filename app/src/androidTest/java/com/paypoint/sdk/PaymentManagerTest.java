@@ -2,7 +2,10 @@ package com.paypoint.sdk;
 
 import android.test.AndroidTestCase;
 
+import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
 import com.paypoint.sdk.library.exception.CardInvalidPanException;
+import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
+import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
 import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
@@ -43,6 +46,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
     private int responseTimeout;
     private PaymentRequest request;
     private String url = "http://10.0.3.2:5000/mobileapi/transactions";
+    private PaymentSuccess responseSuccess;
+    private PaymentError responseError;
 
     @Override
     public void setUp() {
@@ -72,11 +77,17 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
                 .setCallback(this);
     }
 
-    @Test
     public void testTokenValid() throws Exception {
         makePayment();
 
         Assert.assertTrue(success);
+
+        Assert.assertNotNull(responseSuccess);
+        Assert.assertTrue(responseSuccess.getAmount() > 0);
+        Assert.assertNotNull(responseSuccess.getCurrency());
+        Assert.assertNotNull(responseSuccess.getLastFour());
+        //Assert.assertNotNull(responseSuccess.getMerchantReference()); // stub currently returning null
+        Assert.assertNotNull(responseSuccess.getTransactionId());
     }
 
     public void testTokenInvalid() throws Exception {
@@ -183,7 +194,71 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         }
     }
 
-    // TODO add more tests for CCV etc
+    public void testCardEmptyCV2() throws Exception {
+        card.setCv2("");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidCv2Exception e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardNullCV2() throws Exception {
+        card.setCv2(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidCv2Exception e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testTransactionZeroAmount() throws Exception {
+        transaction.setAmount(0);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (TransactionInvalidAmountException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testTransactionNegativeAmount() throws Exception {
+        transaction.setAmount(0);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (TransactionInvalidAmountException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardEmptyCurrency() throws Exception {
+        transaction.setCurrency("");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (TransactionInvalidCurrencyException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardNullCurrency() throws Exception {
+        transaction.setCurrency(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (TransactionInvalidCurrencyException e) {
+            Assert.assertTrue(true);
+        }
+    }
 
     private void makePayment() throws Exception {
         success = false;
@@ -201,12 +276,14 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
     public void paymentSucceeded(PaymentSuccess response) {
         responseReceived = true;
         success = true;
+        responseSuccess = response;
     }
 
     @Override
     public void paymentFailed(PaymentError response) {
         responseReceived = true;
         success = false;
+        responseError = response;
     }
 
     private Callable<Boolean> responseReceived() {
