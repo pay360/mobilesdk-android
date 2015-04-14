@@ -32,6 +32,7 @@ import retrofit.RetrofitError;
 import retrofit.android.AndroidLog;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedByteArray;
 
 
 /**
@@ -154,6 +155,12 @@ public class PaymentManager {
         request.getCard().validateData();
     }
 
+    /**
+     * Callback when payment succeeds
+     * @param paymentResponse
+     * @param response
+     * @param callback
+     */
     private void onPaymentSucceeded(Response paymentResponse, retrofit.client.Response response,
                                   MakePaymentCallback callback) {
         if (callback != null) {
@@ -182,22 +189,63 @@ public class PaymentManager {
         }
     }
 
+    /**
+     * Callback when payment fails
+     * @param retrofitError
+     * @param callback
+     */
     private void onPaymentFailed(RetrofitError retrofitError,
                                  MakePaymentCallback callback) {
         if (callback != null) {
+
             PaymentError error = new PaymentError();
 
             error.setKind(PaymentError.Kind.NETWORK);
-
-            // TODO handle app error parsing JSON?
 
             if (retrofitError != null) {
 
                 if (retrofitError.getResponse() != null) {
                     error.getNetworkError().setHttpStatusCode(retrofitError.getResponse().getStatus());
+
+                    // attempt to parse JSON in the response
+                    Response paymentResponse = parseErrorResponse(retrofitError);
+
+                    if (paymentResponse != null) {
+                        error.setKind(PaymentError.Kind.PAYPOINT);
+                        error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
+                        error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+                    }
                 }
             }
             callback.paymentFailed(error);
         }
+    }
+
+    /**
+     * Parse JSON from error response
+     * @param retrofitError
+     * @return
+     */
+    private Response parseErrorResponse(RetrofitError retrofitError) {
+
+        Response response = null;
+
+        try {
+
+            if (retrofitError != null &&
+                retrofitError.getResponse() != null &&
+                retrofitError.getResponse().getBody() != null) {
+                try {
+                    String json = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
+                    response = new Gson().fromJson(json, Response.class);
+                } catch (Exception e) {
+                    // if JSON is invalid swallow exception - SDK will return
+                }
+            }
+        } catch (Exception e) {
+            // if JSON is invalid swallow exception - SDK will return
+        }
+
+        return response;
     }
 }

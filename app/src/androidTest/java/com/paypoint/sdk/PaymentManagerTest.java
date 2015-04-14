@@ -97,6 +97,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         makePayment();
 
         Assert.assertFalse(success);
+
+        checkReasonCode(PaymentError.ReasonCode.AUTHENTICATION_FAILED);
     }
 
     public void testTokenExpired() throws Exception {
@@ -106,6 +108,19 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         makePayment();
 
         Assert.assertFalse(success);
+
+        checkReasonCode(PaymentError.ReasonCode.CLIENT_TOKEN_EXPIRED);
+    }
+
+    public void testInternalServerError() throws Exception {
+
+        card.setPan("9900000000010407");
+
+        makePayment();
+
+        Assert.assertFalse(success);
+
+        checkReasonCode(PaymentError.ReasonCode.SERVER_ERROR);
     }
 
     public void testCardDeclined() throws Exception {
@@ -115,6 +130,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         makePayment();
 
         Assert.assertFalse(success);
+
+        checkReasonCode(PaymentError.ReasonCode.TRANSACTION_FAILED_TO_PROCESS);
     }
 
     public void testCardWaitFail() throws Exception {
@@ -266,7 +283,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         pm.makePayment(request);
 
         try {
-            await().atMost(responseTimeout, TimeUnit.SECONDS).until(responseReceived());
+            await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
         } catch (Throwable e) {
             success = false;
         }
@@ -294,5 +311,21 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         };
     }
 
+    private void checkNetwork(Integer expectedStatusCode) {
+        Assert.assertEquals(PaymentError.Kind.NETWORK, responseError.getKind());
+        Assert.assertNotNull(responseError);
+        Assert.assertNotNull(responseError.getNetworkError());
 
+        if (expectedStatusCode != null) {
+            Assert.assertEquals(expectedStatusCode.intValue(), responseError.getNetworkError().getHttpStatusCode());
+        }
+    }
+
+    private void checkReasonCode(PaymentError.ReasonCode expected) {
+        Assert.assertEquals(PaymentError.Kind.PAYPOINT, responseError.getKind());
+        Assert.assertNotNull(responseError);
+        Assert.assertNotNull(responseError.getPayPointError());
+        Assert.assertEquals(expected,
+                responseError.getPayPointError().getReasonCode());
+    }
 }
