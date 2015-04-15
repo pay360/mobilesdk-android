@@ -2,7 +2,9 @@ package com.paypoint.sdk;
 
 import android.test.AndroidTestCase;
 
+import com.paypoint.sdk.library.exception.CardExpiredException;
 import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
+import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
 import com.paypoint.sdk.library.exception.CardInvalidPanException;
 import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
 import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
@@ -229,6 +231,39 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
             makePayment();
             Assert.fail();
         } catch (CardInvalidCv2Exception e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardEmptyExpiry() throws Exception {
+        card.setExpiryDate("");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidExpiryException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardNullExpiry() throws Exception {
+        card.setExpiryDate(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardInvalidExpiryException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    public void testCardExpired() throws Exception {
+        card.setExpiryDate("0315");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (CardExpiredException e) {
             Assert.assertTrue(true);
         }
     }

@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.exception.CardExpiredException;
 import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
+import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
 import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
 import com.paypoint.sdk.library.exception.CardInvalidPanException;
 import com.paypoint.sdk.library.exception.NoNetworkException;
@@ -84,9 +85,9 @@ public class PaymentManager {
     }
 
     public void makePayment(final PaymentRequest request)
-            throws NoNetworkException, CardExpiredException, CardInvalidPanException,
-            CardInvalidLuhnException, CardInvalidCv2Exception, TransactionInvalidAmountException,
-            TransactionInvalidCurrencyException {
+            throws NoNetworkException, CardExpiredException, CardInvalidExpiryException,
+            CardInvalidPanException, CardInvalidLuhnException, CardInvalidCv2Exception,
+            TransactionInvalidAmountException, TransactionInvalidCurrencyException {
 
         // check network
         if (!NetworkManager.hasConnection(context)) {
@@ -120,7 +121,7 @@ public class PaymentManager {
     }
 
     private void validateData(PaymentRequest request)
-            throws CardExpiredException, CardInvalidPanException, CardInvalidLuhnException,
+            throws CardExpiredException, CardInvalidExpiryException, CardInvalidPanException, CardInvalidLuhnException,
             CardInvalidCv2Exception, TransactionInvalidAmountException,
             TransactionInvalidCurrencyException {
 

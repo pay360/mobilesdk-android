@@ -5,15 +5,13 @@ import android.text.TextUtils;
 import com.google.gson.annotations.SerializedName;
 import com.paypoint.sdk.library.exception.CardExpiredException;
 import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
+import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
 import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
 import com.paypoint.sdk.library.exception.CardInvalidPanException;
-
-import net.paypoint.cardutilities.Cv2;
-import net.paypoint.cardutilities.ExpiryUtils;
-import net.paypoint.cardutilities.Pan;
-import net.paypoint.cardutilities.PanUtils;
-
-import org.apache.commons.lang3.StringUtils;
+import com.paypoint.sdk.library.utils.Cv2Utils;
+import com.paypoint.sdk.library.utils.ExpiryUtils;
+import com.paypoint.sdk.library.utils.PanUtils;
+import com.paypoint.sdk.library.utils.StringUtils;
 
 import java.util.Date;
 
@@ -21,9 +19,6 @@ import java.util.Date;
  * Created by HendryP on 08/04/2015.
  */
 public class PaymentCard {
-
-    private static final int PAN_LENGTH_MIN = 15;
-    private static final int PAN_LENGTH_MAX = 19;
 
     @SerializedName("pan")
     private String pan;
@@ -57,55 +52,51 @@ public class PaymentCard {
         return this;
     }
 
-    public String getPan() {
+    protected String getPan() {
         return StringUtils.deleteWhitespace(pan);
     }
 
-    public String getCv2() {
+    protected String getCv2() {
         return StringUtils.deleteWhitespace(cv2);
     }
 
-    public String getExpiryDate() {
+    protected String getExpiryDate() {
         return StringUtils.deleteWhitespace(expiryDate);
     }
 
-    public String getCardHolderName() {
+    protected String getCardHolderName() {
         return cardHolderName;
     }
 
-    public void validateData() throws CardInvalidPanException, CardExpiredException,
+    public void validateData() throws CardInvalidPanException, CardInvalidExpiryException, CardExpiredException,
             CardInvalidLuhnException, CardInvalidCv2Exception{
 
         ExpiryUtils expiryUtils = new ExpiryUtils();
 
         String pan = getPan();
-
-        if (TextUtils.isEmpty(pan)) {
-            throw new CardInvalidPanException();
-        }
+        String expiry = getExpiryDate();
 
         // check pan 15-19 digits + all numeric
-        if (!Pan.isValidCardNumber(pan)) {
+        if (!PanUtils.isValidCardNumber(pan)) {
             throw new CardInvalidPanException();
-        }
-
-        if (pan.length() < PAN_LENGTH_MIN ||
-            pan.length() > PAN_LENGTH_MAX) {
-            throw new CardInvalidPanException();
-        }
-
-        // check expiry
-        if (expiryUtils.isCardExpired(getExpiryDate(), new Date())) {
-            throw new CardExpiredException();
         }
 
         // check luhn
-        if (!PanUtils.checkLuhn(getPan())) {
+        if (!PanUtils.checkLuhn(pan)) {
             throw new CardInvalidLuhnException();
         }
 
+        if (!expiryUtils.isValid(expiry)) {
+            throw new CardInvalidExpiryException();
+        }
+
+        // check expiry
+        if (expiryUtils.isCardExpired(expiry, new Date())) {
+            throw new CardExpiredException();
+        }
+
         // check ccv
-        if (!Cv2.isValidCv2Number(getCv2())) {
+        if (!Cv2Utils.isValidCv2Number(getCv2())) {
             throw new CardInvalidCv2Exception();
         }
     }
