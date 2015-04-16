@@ -1,5 +1,9 @@
 package com.paypoint.sdk.library.security;
 
+import android.text.TextUtils;
+
+import com.paypoint.sdk.library.exception.CredentialMissingException;
+
 /**
  * Created by HendryP on 09/04/2015.
  */
@@ -25,5 +29,16 @@ public class PayPointCredentials {
 
     public String getToken() {
         return token;
+    }
+
+    public void validateData() throws CredentialMissingException {
+
+        if (TextUtils.isEmpty(installationId)) {
+            throw new CredentialMissingException();
+        }
+
+        if (TextUtils.isEmpty(token)) {
+            throw new CredentialMissingException();
+        }
     }
 }

@@ -47,7 +47,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
     private PayPointCredentials credentials;
     private int responseTimeout;
     private PaymentRequest request;
-    private String url = "http://10.0.3.2:5000/mobileapi/transactions";
+//    private String url = "http://10.0.3.2:5000/mobileapi"; For Genymotion
+    private String url = "http://192.168.3.138:5000/mobileapi";
     private PaymentSuccess responseSuccess;
     private PaymentError responseError;
 
@@ -90,6 +91,15 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         Assert.assertNotNull(responseSuccess.getLastFour());
         //Assert.assertNotNull(responseSuccess.getMerchantReference()); // stub currently returning null
         Assert.assertNotNull(responseSuccess.getTransactionId());
+    }
+
+    public void testNullAddress() throws Exception {
+
+        request.setAddress(null);
+
+        makePayment();
+
+        Assert.assertFalse(success);
     }
 
     public void testTokenInvalid() throws Exception {

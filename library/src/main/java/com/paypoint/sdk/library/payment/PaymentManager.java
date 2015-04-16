@@ -10,6 +10,7 @@ import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
 import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
 import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
 import com.paypoint.sdk.library.exception.CardInvalidPanException;
+import com.paypoint.sdk.library.exception.CredentialMissingException;
 import com.paypoint.sdk.library.exception.NoNetworkException;
 import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
 import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
@@ -87,7 +88,8 @@ public class PaymentManager {
     public void makePayment(final PaymentRequest request)
             throws NoNetworkException, CardExpiredException, CardInvalidExpiryException,
             CardInvalidPanException, CardInvalidLuhnException, CardInvalidCv2Exception,
-            TransactionInvalidAmountException, TransactionInvalidCurrencyException {
+            TransactionInvalidAmountException, TransactionInvalidCurrencyException,
+            CredentialMissingException {
 
         // check network
         if (!NetworkManager.hasConnection(context)) {
@@ -123,7 +125,7 @@ public class PaymentManager {
     private void validateData(PaymentRequest request)
             throws CardExpiredException, CardInvalidExpiryException, CardInvalidPanException, CardInvalidLuhnException,
             CardInvalidCv2Exception, TransactionInvalidAmountException,
-            TransactionInvalidCurrencyException {
+            TransactionInvalidCurrencyException, CredentialMissingException {
 
         if (request == null) {
             throw new IllegalArgumentException("Request is a required field");
@@ -148,6 +150,9 @@ public class PaymentManager {
         if (request.getCard() == null) {
             throw new IllegalArgumentException("Card is a required field");
         }
+
+        // validate credentials
+        request.getCredentials().validateData();
 
         // validate transaction data
         request.getTransaction().validateData();
