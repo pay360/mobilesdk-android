@@ -16,7 +16,7 @@ import retrofit.http.Path;
 public interface PayPointService {
 
     @Headers("Content-Type: application/json; charset=utf-8")
-    @POST("/{installationId}/payment")
+    @POST("/transactions/{installationId}/payment")
     void makePayment(@Body Request request,
                     @Header("Authorization") String token,
                     @Path("installationId") String installationId,
