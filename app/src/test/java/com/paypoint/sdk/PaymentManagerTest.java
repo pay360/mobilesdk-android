@@ -1,8 +1,5 @@
 package com.paypoint.sdk;
 
-import android.test.AndroidTestCase;
-
-import com.paypoint.sdk.library.exception.CardInvalidPanException;
 import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
@@ -13,7 +10,6 @@ import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 
 import junit.framework.Assert;
-import junit.framework.TestCase;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -3,8 +3,7 @@ package com.paypoint.sdk.library.payment.request;
 import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
-import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
-import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
+import com.paypoint.sdk.library.exception.PaymentException;
 
 /**
  * Created by HendryP on 08/04/2015.
@@ -59,17 +58,16 @@ public class Transaction {
         return currency;
     }
 
-    public void validateData() throws TransactionInvalidAmountException,
-            TransactionInvalidCurrencyException {
+    public void validateData() throws PaymentException {
         // check amount present
         if (getAmount() <= 0) {
-            throw new TransactionInvalidAmountException();
+            throw new PaymentException(PaymentException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
         }
 
         // check currency present
         // TODO need to do any sanity check on the value?
         if (TextUtils.isEmpty(getCurrency())) {
-            throw new TransactionInvalidCurrencyException();
+            throw new PaymentException(PaymentException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
         }
     }
 }

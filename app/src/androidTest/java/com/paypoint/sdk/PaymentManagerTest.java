@@ -2,12 +2,7 @@ package com.paypoint.sdk;
 
 import android.test.AndroidTestCase;
 
-import com.paypoint.sdk.library.exception.CardExpiredException;
-import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
-import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
-import com.paypoint.sdk.library.exception.CardInvalidPanException;
-import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
-import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
+import com.paypoint.sdk.library.exception.PaymentException;
 import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
@@ -19,13 +14,9 @@ import com.paypoint.sdk.library.security.PayPointCredentials;
 
 import junit.framework.Assert;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static com.jayway.awaitility.Awaitility.*;
 import static com.jayway.awaitility.Awaitility.await;
 
 /**
@@ -137,7 +128,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
 
     public void testCardDeclined() throws Exception {
 
-        card.setPan("9900000000005282");
+        card.setPan("9900 0000 0000 5282");
 
         makePayment();
 
@@ -147,7 +138,11 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
     }
 
     public void testCardWaitFail() throws Exception {
-        // default is to wait 60s - this card returns after 61s
+        responseTimeout = 1;
+
+        pm.setResponseTimeout(responseTimeout);
+
+        // default is to wait 60s - this card returns after 2s
         card.setPan("9900000000000168");
 
         makePayment();
@@ -159,7 +154,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         // default is to wait 60s - this card returns after 61s
         card.setPan("9900000000000168");
 
-        responseTimeout = 65;
+        responseTimeout = 4;
 
         pm.setResponseTimeout(responseTimeout);
 
@@ -174,7 +169,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidPanException e) {
+        } catch (PaymentException e) {
             Assert.assertTrue(true);
         }
     }
@@ -185,19 +180,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
-        }
-    }
-
-    public void testCardShortPan() throws Exception {
-        card.setPan("12346786786786");
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_PAN_INVALID);
         }
     }
 
@@ -207,8 +191,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_PAN_INVALID);
         }
     }
 
@@ -218,8 +202,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_PAN_INVALID);
         }
     }
 
@@ -229,8 +213,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidCv2Exception e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_CV2_INVALID);
         }
     }
 
@@ -240,8 +224,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidCv2Exception e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_CV2_INVALID);
         }
     }
 
@@ -251,8 +235,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidExpiryException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_EXPIRY_INVALID);
         }
     }
 
@@ -262,8 +246,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardInvalidExpiryException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_EXPIRY_INVALID);
         }
     }
 
@@ -273,8 +257,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (CardExpiredException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.CARD_EXPIRED);
         }
     }
 
@@ -284,8 +268,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (TransactionInvalidAmountException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
         }
     }
 
@@ -295,8 +279,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (TransactionInvalidAmountException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
         }
     }
 
@@ -306,8 +290,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (TransactionInvalidCurrencyException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
         }
     }
 
@@ -317,8 +301,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (TransactionInvalidCurrencyException e) {
-            Assert.assertTrue(true);
+        } catch (PaymentException e) {
+            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
         }
     }
 
@@ -354,6 +338,14 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
                 return responseReceived; // The condition that must be fulfilled
             }
         };
+    }
+
+    private void checkPaymentException(PaymentException e, PaymentException.ErrorCode expected) {
+        if (e.getErrorCode() == expected) {
+            Assert.assertTrue(true);
+        } else {
+            Assert.fail();
+        }
     }
 
     private void checkNetwork(Integer expectedStatusCode) {

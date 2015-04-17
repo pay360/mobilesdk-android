@@ -5,25 +5,14 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.paypoint.sdk.library.exception.CardExpiredException;
-import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
-import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
-import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
-import com.paypoint.sdk.library.exception.CardInvalidPanException;
-import com.paypoint.sdk.library.exception.CredentialMissingException;
-import com.paypoint.sdk.library.exception.NoNetworkException;
-import com.paypoint.sdk.library.exception.TransactionInvalidAmountException;
-import com.paypoint.sdk.library.exception.TransactionInvalidCurrencyException;
+import com.paypoint.sdk.library.exception.InvalidCredentialsException;
+import com.paypoint.sdk.library.exception.PaymentException;
 import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
-import com.paypoint.sdk.library.payment.request.BillingAddress;
-import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
 import com.paypoint.sdk.library.payment.request.Request;
-import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.payment.response.Response;
-import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.util.concurrent.TimeUnit;
@@ -86,14 +75,11 @@ public class PaymentManager {
     }
 
     public void makePayment(final PaymentRequest request)
-            throws NoNetworkException, CardExpiredException, CardInvalidExpiryException,
-            CardInvalidPanException, CardInvalidLuhnException, CardInvalidCv2Exception,
-            TransactionInvalidAmountException, TransactionInvalidCurrencyException,
-            CredentialMissingException {
+            throws PaymentException {
 
         // check network
         if (!NetworkManager.hasConnection(context)) {
-            throw new NoNetworkException();
+            throw new PaymentException(PaymentException.ErrorCode.NETWORK_NO_CONNECTION);
         }
 
         // validate request data
@@ -123,9 +109,7 @@ public class PaymentManager {
     }
 
     private void validateData(PaymentRequest request)
-            throws CardExpiredException, CardInvalidExpiryException, CardInvalidPanException, CardInvalidLuhnException,
-            CardInvalidCv2Exception, TransactionInvalidAmountException,
-            TransactionInvalidCurrencyException, CredentialMissingException {
+            throws PaymentException {
 
         if (request == null) {
             throw new IllegalArgumentException("Request is a required field");
@@ -152,7 +136,11 @@ public class PaymentManager {
         }
 
         // validate credentials
-        request.getCredentials().validateData();
+        try {
+            request.getCredentials().validateData();
+        } catch (InvalidCredentialsException e) {
+            throw new PaymentException(PaymentException.ErrorCode.CREDENTIALS_INVALID);
+        }
 
         // validate transaction data
         request.getTransaction().validateData();

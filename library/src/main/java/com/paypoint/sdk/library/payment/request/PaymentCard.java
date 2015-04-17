@@ -1,13 +1,7 @@
 package com.paypoint.sdk.library.payment.request;
 
-import android.text.TextUtils;
-
 import com.google.gson.annotations.SerializedName;
-import com.paypoint.sdk.library.exception.CardExpiredException;
-import com.paypoint.sdk.library.exception.CardInvalidCv2Exception;
-import com.paypoint.sdk.library.exception.CardInvalidExpiryException;
-import com.paypoint.sdk.library.exception.CardInvalidLuhnException;
-import com.paypoint.sdk.library.exception.CardInvalidPanException;
+import com.paypoint.sdk.library.exception.PaymentException;
 import com.paypoint.sdk.library.utils.Cv2Utils;
 import com.paypoint.sdk.library.utils.ExpiryUtils;
 import com.paypoint.sdk.library.utils.PanUtils;
@@ -33,43 +27,42 @@ public class PaymentCard {
     private String cardHolderName;
 
     public PaymentCard setPan(String pan) {
-        this.pan = pan;
+        this.pan = StringUtils.deleteWhitespace(pan);
         return this;
     }
 
     public PaymentCard setCv2(String cv2) {
-        this.cv2 = cv2;
+        this.cv2 = StringUtils.deleteWhitespace(cv2);
         return this;
     }
 
     public PaymentCard setExpiryDate(String expiryDate) {
-        this.expiryDate = expiryDate;
+        this.expiryDate = StringUtils.deleteWhitespace(expiryDate);
         return this;
     }
 
     public PaymentCard setCardHolderName(String cardHolderName) {
-        this.cardHolderName = cardHolderName;
+        this.cardHolderName = StringUtils.deleteWhitespace(cardHolderName);
         return this;
     }
 
-    protected String getPan() {
-        return StringUtils.deleteWhitespace(pan);
+    public String getPan() {
+        return pan;
     }
 
-    protected String getCv2() {
-        return StringUtils.deleteWhitespace(cv2);
+    public String getCv2() {
+        return cv2;
     }
 
-    protected String getExpiryDate() {
-        return StringUtils.deleteWhitespace(expiryDate);
+    public String getExpiryDate() {
+        return expiryDate;
     }
 
-    protected String getCardHolderName() {
+    public String getCardHolderName() {
         return cardHolderName;
     }
 
-    public void validateData() throws CardInvalidPanException, CardInvalidExpiryException, CardExpiredException,
-            CardInvalidLuhnException, CardInvalidCv2Exception{
+    public void validateData() throws PaymentException {
 
         ExpiryUtils expiryUtils = new ExpiryUtils();
 
@@ -78,26 +71,26 @@ public class PaymentCard {
 
         // check pan 15-19 digits + all numeric
         if (!PanUtils.isValidCardNumber(pan)) {
-            throw new CardInvalidPanException();
+            throw new PaymentException(PaymentException.ErrorCode.CARD_PAN_INVALID);
         }
 
         // check luhn
         if (!PanUtils.checkLuhn(pan)) {
-            throw new CardInvalidLuhnException();
+            throw new PaymentException(PaymentException.ErrorCode.CARD_PAN_INVALID_LUHN);
         }
 
         if (!expiryUtils.isValid(expiry)) {
-            throw new CardInvalidExpiryException();
+            throw new PaymentException(PaymentException.ErrorCode.CARD_EXPIRY_INVALID);
         }
 
         // check expiry
         if (expiryUtils.isCardExpired(expiry, new Date())) {
-            throw new CardExpiredException();
+            throw new PaymentException(PaymentException.ErrorCode.CARD_EXPIRED);
         }
 
         // check ccv
         if (!Cv2Utils.isValidCv2Number(getCv2())) {
-            throw new CardInvalidCv2Exception();
+            throw new PaymentException(PaymentException.ErrorCode.CARD_CV2_INVALID);
         }
     }
 }

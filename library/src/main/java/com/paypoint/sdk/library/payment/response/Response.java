@@ -105,4 +105,110 @@ public class Response {
 
         return status;
     }
+
+    private static class Transaction {
+
+        @SerializedName("transactionId")
+        private String transactionId;
+
+        @SerializedName("merchantRef")
+        private String merchantReference;
+
+        @SerializedName("type")
+        private String type;
+
+        @SerializedName("amount")
+        private float amount;
+
+        @SerializedName("currency")
+        private String currency;
+
+        @SerializedName("transactionTime")
+        private String transactionTime;
+
+        public String getTransactionId() {
+            return transactionId;
+        }
+
+        public String getMerchantReference() {
+            return merchantReference;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public float getAmount() {
+            return amount;
+        }
+
+        public String getCurrency() {
+            return currency;
+        }
+
+        public String getTransactionTime() {
+            return transactionTime;
+        }
+    }
+
+    private class PaymentMethod {
+
+        @SerializedName("card")
+        private PaymentCard card;
+
+        public PaymentCard getCard() {
+            return card;
+        }
+    }
+
+    private class PaymentCard {
+
+        private String cardUsageType;
+
+        private String cardScheme;
+
+        private String lastFour;
+
+        public String getCardUsageType() {
+            return cardUsageType;
+        }
+
+        public String getCardScheme() {
+            return cardScheme;
+        }
+
+        public String getLastFour() {
+            return lastFour;
+        }
+    }
+
+    private class Outcome {
+
+        private static final String RESPONSE_SUCCESS = "SUCCESS";
+
+        @SerializedName("status")
+        private String status;
+
+        @SerializedName("reasonCode")
+        private int reasonCode;
+
+        @SerializedName("reasonMessage")
+        private String reasonMessage;
+
+        public String getStatus() {
+            return status;
+        }
+
+        public int getReasonCode() {
+            return reasonCode;
+        }
+
+        public String getReasonMessage() {
+            return reasonMessage;
+        }
+
+        public boolean isSuccessful() {
+            return RESPONSE_SUCCESS.equalsIgnoreCase(status);
+        }
+    }
 }

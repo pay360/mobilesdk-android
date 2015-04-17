@@ -2,8 +2,6 @@ package com.paypoint.sdk.library.utils;
 
 import android.text.TextUtils;
 
-import com.paypoint.sdk.library.exception.CardInvalidPanException;
-
 /**
  * Who:  Pete
  * When: 15/04/2015
@@ -11,7 +9,7 @@ import com.paypoint.sdk.library.exception.CardInvalidPanException;
  */
 public class PanUtils {
 
-    private static final int PAN_LENGTH_MIN = 15;
+    private static final int PAN_LENGTH_MIN = 13;
     private static final int PAN_LENGTH_MAX = 19;
 
     public static boolean checkLuhn(String pan) {
