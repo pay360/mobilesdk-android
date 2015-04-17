@@ -1,11 +1,13 @@
 package com.paypoint.sdk.library.payment;
 
+import java.io.Serializable;
+
 /**
  * Who:  Pete
  * When: 09/04/2015
  * What:
  */
-public class PaymentSuccess {
+public class PaymentSuccess implements Serializable {
 
     private String transactionId;
 
