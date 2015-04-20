@@ -65,8 +65,6 @@ public class PaymentManager {
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(serverUrl)
                 .setConverter(new GsonConverter(gson))
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setLog(new AndroidLog(Logger.TAG))
                 .setClient(new OkClient(okHttpClient))
                 .build();
 
