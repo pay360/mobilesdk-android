@@ -2,7 +2,8 @@ package com.paypoint.sdk;
 
 import android.test.AndroidTestCase;
 
-import com.paypoint.sdk.library.exception.PaymentException;
+import com.paypoint.sdk.library.exception.InvalidCredentialsException;
+import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
@@ -14,6 +15,7 @@ import com.paypoint.sdk.library.security.PayPointCredentials;
 
 import junit.framework.Assert;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -46,9 +48,17 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
     @Override
     public void setUp() {
 
-        pm = new PaymentManager(getContext());
+        credentials = new PayPointCredentials().setInstallationId("1212312")
+                .setToken("VALID_TOKEN");
 
-        transaction = new Transaction().setAmount(10).setCurrency("GBP");
+        pm = new PaymentManager(getContext())
+                .setUrl(url)
+                .setCredentials(credentials);
+
+        transaction = new Transaction()
+                .setAmount(10)
+                .setCurrency("GBP")
+                .setMerchantReference(UUID.randomUUID().toString());
 
         card = new PaymentCard().setPan("9900000000005159").setCv2("123")
                 .setExpiryDate("1115");
@@ -57,17 +67,12 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
                 .setLine3("A Street").setLine4("Twertonia").setCity("Bath").setRegion("Somerset")
                 .setPostcode("BA1 234").setCountryCode("GBR");
 
-        credentials = new PayPointCredentials().setInstallationId("1212312")
-                .setToken("VALID_TOKEN");
-
         responseTimeout = TIMEOUT_SIXTY_SECONDS;
 
         request = new PaymentRequest();
         request.setTransaction(transaction)
                 .setCard(card)
                 .setAddress(address)
-                .setCredentials(credentials)
-                .setUrl(url)
                 .setCallback(this);
     }
 
@@ -80,7 +85,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         Assert.assertTrue(responseSuccess.getAmount() > 0);
         Assert.assertNotNull(responseSuccess.getCurrency());
         Assert.assertNotNull(responseSuccess.getLastFour());
-        //Assert.assertNotNull(responseSuccess.getMerchantReference()); // stub currently returning null
+        Assert.assertNotNull(responseSuccess.getMerchantReference());
         Assert.assertNotNull(responseSuccess.getTransactionId());
     }
 
@@ -169,7 +174,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
+        } catch (PaymentValidationException e) {
             Assert.assertTrue(true);
         }
     }
@@ -180,8 +185,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_PAN_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_PAN_INVALID);
         }
     }
 
@@ -191,8 +196,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_PAN_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_PAN_INVALID);
         }
     }
 
@@ -202,8 +207,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_PAN_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_PAN_INVALID);
         }
     }
 
@@ -213,8 +218,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_CV2_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_CV2_INVALID);
         }
     }
 
@@ -224,8 +229,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_CV2_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_CV2_INVALID);
         }
     }
 
@@ -235,8 +240,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_EXPIRY_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRY_INVALID);
         }
     }
 
@@ -246,8 +251,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_EXPIRY_INVALID);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRY_INVALID);
         }
     }
 
@@ -257,8 +262,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.CARD_EXPIRED);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRED);
         }
     }
 
@@ -268,8 +273,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
         }
     }
 
@@ -279,8 +284,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.TRANSACTION_INVALID_AMOUNT);
         }
     }
 
@@ -290,8 +295,8 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
         }
     }
 
@@ -301,8 +306,87 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentException e) {
-            checkPaymentException(e, PaymentException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.TRANSACTION_INVALID_CURRENCY);
+        }
+    }
+
+    public void testNullTransaction() throws Exception {
+        request.setTransaction(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_TRANSACTION);
+        }
+    }
+
+    public void testNullCard() throws Exception {
+        request.setCard(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CARD);
+        }
+    }
+
+    public void testNullRequest() throws Exception {
+
+        request = null;
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_REQUEST);
+        }
+    }
+
+    public void testNullUrl() throws Exception {
+
+        pm.setUrl(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_URL);
+        }
+    }
+
+    public void testNullPayPointCredentials() throws Exception {
+        pm.setCredentials(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        }
+    }
+
+    public void testEmptyTokenPayPointCredentials() throws Exception {
+        credentials.setToken(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        }
+    }
+
+    public void testEmptyInstallationIdPayPointCredentials() throws Exception {
+        credentials.setInstallationId(null);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
         }
     }
 
@@ -340,7 +424,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         };
     }
 
-    private void checkPaymentException(PaymentException e, PaymentException.ErrorCode expected) {
+    private void checkPaymentException(PaymentValidationException e, PaymentValidationException.ErrorCode expected) {
         if (e.getErrorCode() == expected) {
             Assert.assertTrue(true);
         } else {
