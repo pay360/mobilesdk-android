@@ -9,10 +9,10 @@ package com.paypoint.sdk.library.network;
 public class EndpointManager {
 
     public enum Environment {
-        STAGING(null),
-        MITE(null),
-        PRODUCTION(null),
-        LIVE(null);
+        STAGING(null),      // TODO populate URL when known
+        MITE(null),         // TODO populate URL when known
+        PRODUCTION(null),   // TODO populate URL when known
+        LIVE(null);         // TODO populate URL when known
 
         String url;
 
