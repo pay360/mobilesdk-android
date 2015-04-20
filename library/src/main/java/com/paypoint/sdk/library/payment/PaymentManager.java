@@ -6,13 +6,14 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
-import com.paypoint.sdk.library.exception.PaymentException;
+import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
 import com.paypoint.sdk.library.payment.request.Request;
 import com.paypoint.sdk.library.payment.response.Response;
+import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,8 @@ public class PaymentManager {
 
     private Context context;
     private int responseTimeoutSeconds = HTTP_TIMEOUT_RESPONSE;
+    private String url;
+    private PayPointCredentials credentials;
 
     public PaymentManager(Context context) {
         this.context = context;
@@ -52,7 +55,7 @@ public class PaymentManager {
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS")
-                .serializeNulls()
+//                .serializeNulls()
                 .create();
 
         OkHttpClient okHttpClient = new OkHttpClient();
@@ -70,31 +73,59 @@ public class PaymentManager {
         return adapter.create(PayPointService.class);
     }
 
-    public void setResponseTimeout(int responseTimeoutSeconds) {
+    public PaymentManager setResponseTimeout(int responseTimeoutSeconds) {
         this.responseTimeoutSeconds = responseTimeoutSeconds;
+        return this;
+    }
+
+    public PaymentManager setUrl(String url) {
+        this.url = url;
+        return this;
+    }
+
+    public PaymentManager setCredentials(PayPointCredentials credentials) {
+        this.credentials = credentials;
+        return this;
     }
 
     public void makePayment(final PaymentRequest request)
-            throws PaymentException {
+            throws PaymentValidationException {
 
         // check network
         if (!NetworkManager.hasConnection(context)) {
-            throw new PaymentException(PaymentException.ErrorCode.NETWORK_NO_CONNECTION);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.NETWORK_NO_CONNECTION);
         }
 
         // validate request data
-        validateData(request);
+        validatePaymentDetails(request);
+
+        // check null transaction
+        if (TextUtils.isEmpty(url)) {
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_URL);
+        }
+
+        // check null transaction
+        if (credentials == null) {
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // validate credentials
+        try {
+            credentials.validateData();
+        } catch (InvalidCredentialsException e) {
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        }
 
         // call REST endpoint
         Request jsonRequest = new Request().setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
                 .setBillingAddress(request.getAddress()));
 
-        PayPointService service = getService(request.getUrl(),
+        PayPointService service = getService(url,
                 responseTimeoutSeconds);
 
         service.makePayment(jsonRequest, "Bearer " +
-                request.getCredentials().getToken(), request.getCredentials().getInstallationId(),
+                credentials.getToken(), credentials.getInstallationId(),
                 new Callback<Response>() {
                     @Override
                     public void success(Response paymentResponse, retrofit.client.Response response) {
@@ -108,38 +139,21 @@ public class PaymentManager {
                 });
     }
 
-    private void validateData(PaymentRequest request)
-            throws PaymentException {
+    public void validatePaymentDetails(PaymentRequest request)
+            throws PaymentValidationException {
 
         if (request == null) {
-            throw new IllegalArgumentException("Request is a required field");
-        }
-
-        // check null transaction
-        if (TextUtils.isEmpty(request.getUrl())) {
-            throw new IllegalArgumentException("URL is a required field");
-        }
-
-        // check null transaction
-        if (request.getCredentials() == null) {
-            throw new IllegalArgumentException("Credentials is a required field");
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_REQUEST);
         }
 
         // check null transaction
         if (request.getTransaction() == null) {
-            throw new IllegalArgumentException("Transaction is a required field");
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_TRANSACTION);
         }
 
         // check null card
         if (request.getCard() == null) {
-            throw new IllegalArgumentException("Card is a required field");
-        }
-
-        // validate credentials
-        try {
-            request.getCredentials().validateData();
-        } catch (InvalidCredentialsException e) {
-            throw new PaymentException(PaymentException.ErrorCode.CREDENTIALS_INVALID);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CARD);
         }
 
         // validate transaction data

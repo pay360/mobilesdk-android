@@ -12,26 +12,13 @@ import com.paypoint.sdk.library.security.PayPointCredentials;
  */
 public class PaymentRequest {
 
-    private String url;
-
     private Transaction transaction;
 
     private PaymentCard card;
 
     private BillingAddress address;
 
-    private PayPointCredentials credentials;
-
     private PaymentManager.MakePaymentCallback callback;
-
-    public String getUrl() {
-        return url;
-    }
-
-    public PaymentRequest setUrl(String url) {
-        this.url = url;
-        return this;
-    }
 
     public Transaction getTransaction() {
         return transaction;
@@ -57,15 +44,6 @@ public class PaymentRequest {
 
     public PaymentRequest setAddress(BillingAddress address) {
         this.address = address;
-        return this;
-    }
-
-    public PayPointCredentials getCredentials() {
-        return credentials;
-    }
-
-    public PaymentRequest setCredentials(PayPointCredentials credentials) {
-        this.credentials = credentials;
         return this;
     }
 

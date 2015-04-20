@@ -1,7 +1,7 @@
 package com.paypoint.sdk.library.payment.request;
 
 import com.google.gson.annotations.SerializedName;
-import com.paypoint.sdk.library.exception.PaymentException;
+import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.utils.Cv2Utils;
 import com.paypoint.sdk.library.utils.ExpiryUtils;
 import com.paypoint.sdk.library.utils.PanUtils;
@@ -62,7 +62,7 @@ public class PaymentCard {
         return cardHolderName;
     }
 
-    public void validateData() throws PaymentException {
+    public void validateData() throws PaymentValidationException {
 
         ExpiryUtils expiryUtils = new ExpiryUtils();
 
@@ -71,26 +71,26 @@ public class PaymentCard {
 
         // check pan 15-19 digits + all numeric
         if (!PanUtils.isValidCardNumber(pan)) {
-            throw new PaymentException(PaymentException.ErrorCode.CARD_PAN_INVALID);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_PAN_INVALID);
         }
 
         // check luhn
         if (!PanUtils.checkLuhn(pan)) {
-            throw new PaymentException(PaymentException.ErrorCode.CARD_PAN_INVALID_LUHN);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_PAN_INVALID_LUHN);
         }
 
         if (!expiryUtils.isValid(expiry)) {
-            throw new PaymentException(PaymentException.ErrorCode.CARD_EXPIRY_INVALID);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRY_INVALID);
         }
 
         // check expiry
         if (expiryUtils.isCardExpired(expiry, new Date())) {
-            throw new PaymentException(PaymentException.ErrorCode.CARD_EXPIRED);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRED);
         }
 
         // check ccv
         if (!Cv2Utils.isValidCv2Number(getCv2())) {
-            throw new PaymentException(PaymentException.ErrorCode.CARD_CV2_INVALID);
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_CV2_INVALID);
         }
     }
 }
