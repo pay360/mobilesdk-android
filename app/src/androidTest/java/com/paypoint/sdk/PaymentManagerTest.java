@@ -95,7 +95,7 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
 
         makePayment();
 
-        Assert.assertFalse(success);
+        Assert.assertTrue(success);
     }
 
     public void testTokenInvalid() throws Exception {
