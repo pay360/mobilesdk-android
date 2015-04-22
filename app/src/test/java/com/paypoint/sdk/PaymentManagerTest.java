@@ -45,7 +45,11 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private PayPointCredentials credentials;
     private int responseTimeout;
     private PaymentRequest request;
-    private String url = "http://127.0.0.1:5000/mobileapi/transaction";
+
+    // TODO doesn't seem to currently work against local IP with Robolectric - retest when remote server available
+    // TODO plus probably don't want duplication of this code in unit tests and instrumentation test either have
+    // TODO a base class or just do away with the instrumentation tests
+    private String url = "http://192.168.3.138:5000/mobileapi";
 
     @Before
     public void setUp() {
@@ -73,9 +77,12 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         request.setTransaction(transaction)
                 .setCard(card)
                 .setAddress(address)
-                .setCredentials(credentials)
-                .setUrl(url)
+                //.setCredentials(credentials)
+                //.setUrl(url)
                 .setCallback(this);
+
+        pm.setUrl(url);
+        pm.setCredentials(credentials);
     }
 
     @Test
@@ -134,60 +141,60 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         Assert.assertTrue(success);
     }
 
-    public void testCardEmptyPan() throws Exception {
-        card.setPan("");
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
-        }
-    }
-
-    public void testCardNullPan() throws Exception {
-        card.setPan(null);
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
-        }
-    }
-
-    public void testCardShortPan() throws Exception {
-        card.setPan("12346786786786");
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
-        }
-    }
-
-    public void testCardLongPan() throws Exception {
-        card.setPan("99000000000051591123");
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
-        }
-    }
-
-    public void testCardAlphPan() throws Exception {
-        card.setPan("A900000000005159");
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (CardInvalidPanException e) {
-            Assert.assertTrue(true);
-        }
-    }
+//    public void testCardEmptyPan() throws Exception {
+//        card.setPan("");
+//
+//        try {
+//            makePayment();
+//            Assert.fail();
+//        } catch (CardInvalidPanException e) {
+//            Assert.assertTrue(true);
+//        }
+//    }
+//
+//    public void testCardNullPan() throws Exception {
+//        card.setPan(null);
+//
+//        try {
+//            makePayment();
+//            Assert.fail();
+//        } catch (CardInvalidPanException e) {
+//            Assert.assertTrue(true);
+//        }
+//    }
+//
+//    public void testCardShortPan() throws Exception {
+//        card.setPan("12346786786786");
+//
+//        try {
+//            makePayment();
+//            Assert.fail();
+//        } catch (CardInvalidPanException e) {
+//            Assert.assertTrue(true);
+//        }
+//    }
+//
+//    public void testCardLongPan() throws Exception {
+//        card.setPan("99000000000051591123");
+//
+//        try {
+//            makePayment();
+//            Assert.fail();
+//        } catch (CardInvalidPanException e) {
+//            Assert.assertTrue(true);
+//        }
+//    }
+//
+//    public void testCardAlphPan() throws Exception {
+//        card.setPan("A900000000005159");
+//
+//        try {
+//            makePayment();
+//            Assert.fail();
+//        } catch (CardInvalidPanException e) {
+//            Assert.assertTrue(true);
+//        }
+//    }
 
     // TODO add more tests for CCV etc
 
