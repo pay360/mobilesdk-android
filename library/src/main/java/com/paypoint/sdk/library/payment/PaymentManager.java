@@ -10,6 +10,7 @@ import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
+import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
 import com.paypoint.sdk.library.payment.request.Request;
 import com.paypoint.sdk.library.payment.response.Response;
@@ -159,6 +160,18 @@ public class PaymentManager {
 
         // validate card data
         request.getCard().validateData();
+    }
+
+    public void validateCardPan(String pan) throws PaymentValidationException {
+        PaymentCard.validatePan(pan);
+    }
+
+    public void validateCardExpiry(String expiry) throws PaymentValidationException {
+        PaymentCard.validateExpiry(expiry);
+    }
+
+    public void validateCardCv2(String cv2) throws PaymentValidationException {
+        PaymentCard.validateCv2(cv2);
     }
 
     /**

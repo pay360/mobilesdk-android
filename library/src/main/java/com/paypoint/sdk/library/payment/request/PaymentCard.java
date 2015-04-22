@@ -64,10 +64,15 @@ public class PaymentCard {
 
     public void validateData() throws PaymentValidationException {
 
-        ExpiryUtils expiryUtils = new ExpiryUtils();
+        validatePan(pan);
 
-        String pan = getPan();
-        String expiry = getExpiryDate();
+        validateExpiry(expiryDate);
+
+        validateCv2(cv2);
+    }
+
+    public static void validatePan(String pan) throws PaymentValidationException {
+        pan = StringUtils.deleteWhitespace(pan);
 
         // check pan 15-19 digits + all numeric
         if (!PanUtils.isValidCardNumber(pan)) {
@@ -78,18 +83,28 @@ public class PaymentCard {
         if (!PanUtils.checkLuhn(pan)) {
             throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_PAN_INVALID_LUHN);
         }
+    }
 
-        if (!expiryUtils.isValid(expiry)) {
+    public static void validateExpiry(String expiryDate) throws PaymentValidationException {
+        ExpiryUtils expiryUtils = new ExpiryUtils();
+
+        expiryDate = StringUtils.deleteWhitespace(expiryDate);
+
+        if (!expiryUtils.isValid(expiryDate)) {
             throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRY_INVALID);
         }
 
-        // check expiry
-        if (expiryUtils.isCardExpired(expiry, new Date())) {
-            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRED);
-        }
+//        // check expiry
+//        if (expiryUtils.isCardExpired(expiryDate, new Date())) {
+//            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRED);
+//        }
+    }
+
+    public static void validateCv2(String cv2) throws PaymentValidationException {
+        cv2 = StringUtils.deleteWhitespace(cv2);
 
         // check ccv
-        if (!Cv2Utils.isValidCv2Number(getCv2())) {
+        if (!Cv2Utils.isValidCv2Number(cv2)) {
             throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_CV2_INVALID);
         }
     }
