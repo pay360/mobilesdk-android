@@ -32,7 +32,7 @@ public class PaymentError {
 
         public static ReasonCode getReasonCode(int code) {
 
-            for (ReasonCode reasonCode :ReasonCode.values()) {
+            for (ReasonCode reasonCode : ReasonCode.values()) {
                 if (reasonCode.code == code) {
                     return reasonCode;
                 }

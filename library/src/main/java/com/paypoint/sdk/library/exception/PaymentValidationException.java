@@ -8,12 +8,12 @@ package com.paypoint.sdk.library.exception;
 public class PaymentValidationException extends Exception {
 
     public enum ErrorCode {
-        CARD_EXPIRED,                   // card has expired
+        //CARD_EXPIRED,                   // card has expired
         CARD_EXPIRY_INVALID,            // incorrect length or non numeric
         CARD_PAN_INVALID,               // incorrect PAN length or non numeric
         CARD_PAN_INVALID_LUHN,          // invalid card PAN
         CARD_CV2_INVALID,               // incorrect CV2 length or non numeric
-        TRANSACTION_INVALID_AMOUNT,     // no transaction or negative amount specified
+        TRANSACTION_INVALID_AMOUNT,     // no amount or negative amount specified
         TRANSACTION_INVALID_CURRENCY,   // no currency specified
         NETWORK_NO_CONNECTION,          // device has no network connection
         INVALID_CREDENTIALS,            // credentials missing (PayPoint token or installation id)
