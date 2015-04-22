@@ -256,16 +256,16 @@ public class PaymentManagerTest extends AndroidTestCase implements PaymentManage
         }
     }
 
-    public void testCardExpired() throws Exception {
-        card.setExpiryDate("0315");
-
-        try {
-            makePayment();
-            Assert.fail();
-        } catch (PaymentValidationException e) {
-            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRED);
-        }
-    }
+//    public void testCardExpired() throws Exception {
+//        card.setExpiryDate("0315");
+//
+//        try {
+//            makePayment();
+//            Assert.fail();
+//        } catch (PaymentValidationException e) {
+//            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRED);
+//        }
+//    }
 
     public void testTransactionZeroAmount() throws Exception {
         transaction.setAmount(0);
