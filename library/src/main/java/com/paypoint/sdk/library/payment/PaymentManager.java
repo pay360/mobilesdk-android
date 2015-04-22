@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.payment;
 
 import android.content.Context;
@@ -27,9 +31,10 @@ import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
 
-
 /**
- * Created by HendryP on 08/04/2015.
+ * Who:  Pete
+ * When: 20/04/2015
+ * What: Manager for handling payment requests
  */
 public class PaymentManager {
 

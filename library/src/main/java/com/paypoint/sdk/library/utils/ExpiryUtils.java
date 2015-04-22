@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.utils;
 
 import android.text.TextUtils;
@@ -8,7 +12,7 @@ import java.util.Date;
 /**
  * Who:  Pete
  * When: 15/04/2015
- * What:
+ * What: Expiry date utility functions
  */
 public class ExpiryUtils {
 

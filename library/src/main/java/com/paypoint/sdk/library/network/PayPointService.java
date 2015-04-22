@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.network;
 
 import com.paypoint.sdk.library.payment.request.Request;
@@ -11,7 +15,9 @@ import retrofit.http.POST;
 import retrofit.http.Path;
 
 /**
- * Created by HendryP on 09/04/2015.
+ * Who:  Pete
+ * When: 20/04/2015
+ * What: PayPoint Retrofit REST service
  */
 public interface PayPointService {
 

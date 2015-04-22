@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.payment;
 
 import com.paypoint.sdk.library.payment.request.BillingAddress;

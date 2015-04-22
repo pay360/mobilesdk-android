@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.network;
 
 import android.content.Context;
@@ -5,10 +9,17 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 /**
- * Created by HendryP on 09/04/2015.
+ * Who:  Pete
+ * When: 20/04/2015
+ * What: Manager for handling network related functions
  */
 public class NetworkManager {
 
+    /**
+     * Check if device has connectivity
+     * @param context
+     * @return
+     */
     public static boolean hasConnection(Context context) {
         boolean isConnected = false;
 

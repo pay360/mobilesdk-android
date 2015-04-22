@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.utils;
 
 import android.text.TextUtils;
@@ -5,7 +9,7 @@ import android.text.TextUtils;
 /**
  * Who:  Pete
  * When: 15/04/2015
- * What:
+ * What: CV2 utility functions
  */
 public class Cv2Utils {
 

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2015. PayPoint
+ */
+
 package com.paypoint.sdk.library.payment.request;
 
 import com.google.gson.annotations.SerializedName;
