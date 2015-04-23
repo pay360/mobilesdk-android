@@ -18,15 +18,13 @@ public class PaymentError {
 
     public enum ReasonCode {
         UNKNOWN(-1),
-        SUCCESS(0),
-        INVALID(1),
-        AUTHENTICATION_FAILED(2),
-        CLIENT_TOKEN_EXPIRED(3),
-        UNAUTHORISED_REQUEST(4),
-        TRANSACTION_FAILED_TO_PROCESS(5),
-        SERVER_ERROR(6),
-        SUSPENDED_FOR_3D_SECURE(7),
-        SUSPENDED_FOR_CLIENT_REDIRECT(8);
+        SUCCESS(0),                         // Operation successful as described
+        INVALID(1),                         // Request was not correctly formed
+        AUTHENTICATION_FAILED(2),           // The presented API token was not valid, or the wrong type of authentication was used
+        CLIENT_TOKEN_EXPIRED(3),            // Get a new token
+        UNAUTHORISED_REQUEST(4),            // The token was valid, but does not grant you access to use the specified feature
+        TRANSACTION_FAILED_TO_PROCESS(5),   // The transaction was successfully submitted but failed to be processed correctly.
+        SERVER_ERROR(6);                    // An internal server error occurred at paypoint
 
         int code;
 

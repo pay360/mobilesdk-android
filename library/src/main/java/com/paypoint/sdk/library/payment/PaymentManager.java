@@ -21,6 +21,8 @@ import com.paypoint.sdk.library.payment.response.Response;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import retrofit.Callback;
@@ -68,8 +70,11 @@ public class PaymentManager {
         okHttpClient.setConnectTimeout(HTTP_TIMEOUT_CONNECTION, TimeUnit.SECONDS);
         okHttpClient.setReadTimeout(responseTimeoutSeconds, TimeUnit.SECONDS);
 
+        Executor executor = Executors.newSingleThreadExecutor();
+
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(serverUrl)
+                .setExecutors(executor, executor)
                 .setConverter(new GsonConverter(gson))
                 .setClient(new OkClient(okHttpClient))
                 .build();
