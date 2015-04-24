@@ -70,6 +70,7 @@ public class PaymentManager {
         okHttpClient.setConnectTimeout(HTTP_TIMEOUT_CONNECTION, TimeUnit.SECONDS);
         okHttpClient.setReadTimeout(responseTimeoutSeconds, TimeUnit.SECONDS);
 
+        // setting the executor is required for the Robolectric tests to run
         Executor executor = Executors.newSingleThreadExecutor();
 
         RestAdapter adapter = new RestAdapter.Builder()
