@@ -84,7 +84,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
                 .setAddress(address)
                 .setCallback(this);
 
-        url = "https://192.168.6.143";
+        // self signed cert
+        //url = "https://192.168.6.143";
 
         pm.setUrl(url);
         pm.setCredentials(credentials);
