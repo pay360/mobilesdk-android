@@ -13,8 +13,8 @@ package com.paypoint.sdk.library.network;
 public class EndpointManager {
 
     public enum Environment {
-        MITE(null),         // TODO populate URL when known
-        PRODUCTION(null);   // TODO populate URL when known
+        MITE("https://api.mite.paypoint.net:2443"),
+        PRODUCTION("https://api.paypoint.net");
 
         String url;
 
@@ -28,18 +28,27 @@ public class EndpointManager {
     }
 
     /**
+     * Checks if URL matches a PayPoint environment URL
+     * @param url
+     * @return
+     */
+    public static boolean isPayPointUrl(String url) {
+        for (Environment environment :Environment.values()) {
+            // check if URL matches environment URL
+            if (url.equals(environment.url)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Checks if URL is a custom URL i.e. does not matches an PayPoint environment URL
      * @param url
      * @return
      */
     public static boolean isCustomUrl(String url) {
-        for (Environment environment :Environment.values()) {
-            // check if URL matches environment URL
-            if (url.equals(environment.url)) {
-                return false;
-            }
-        }
-
-        return true;
+        return !isPayPointUrl(url);
     }
 }

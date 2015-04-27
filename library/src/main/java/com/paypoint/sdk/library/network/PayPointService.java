@@ -22,7 +22,7 @@ import retrofit.http.Path;
 public interface PayPointService {
 
     @Headers("Content-Type: application/json; charset=utf-8")
-    @POST("/transactions/{installationId}/payment")
+    @POST("/acceptor/rest/mobile/transactions/{installationId}/payment")
     void makePayment(@Body Request request,
                     @Header("Authorization") String token,
                     @Path("installationId") String installationId,
