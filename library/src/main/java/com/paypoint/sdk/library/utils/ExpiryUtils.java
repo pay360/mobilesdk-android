@@ -33,6 +33,14 @@ public class ExpiryUtils {
             return false;
         }
 
+        // check month valid
+        int month = Integer.parseInt(expiry.substring(0, 2));
+
+        if (month < 1 ||
+            month > 12) {
+            return false;
+        }
+
         return true;
     }
 
