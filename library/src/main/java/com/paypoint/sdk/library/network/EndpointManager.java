@@ -14,8 +14,7 @@ public class EndpointManager {
 
     public enum Environment {
         MITE(null),         // TODO populate URL when known
-        PRODUCTION(null),   // TODO populate URL when known
-        LIVE(null);         // TODO populate URL when known
+        PRODUCTION(null);   // TODO populate URL when known
 
         String url;
 
@@ -26,5 +25,21 @@ public class EndpointManager {
 
     public static String getEndpointUrl(Environment environment) {
         return environment.url;
+    }
+
+    /**
+     * Checks if URL is a custom URL i.e. does not matches an PayPoint environment URL
+     * @param url
+     * @return
+     */
+    public static boolean isCustomUrl(String url) {
+        for (Environment environment :Environment.values()) {
+            // check if URL matches environment URL
+            if (url.equals(environment.url)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

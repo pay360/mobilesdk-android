@@ -5,6 +5,7 @@
 package com.paypoint.sdk.library.payment;
 
 import android.content.Context;
+import android.net.SSLCertificateSocketFactory;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -12,8 +13,10 @@ import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.log.Logger;
+import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
+import com.paypoint.sdk.library.network.SelfSignedSocketFactory;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
 import com.paypoint.sdk.library.payment.request.Request;
@@ -21,9 +24,17 @@ import com.paypoint.sdk.library.payment.response.Response;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -59,7 +70,8 @@ public class PaymentManager {
         this.context = context;
     }
 
-    private PayPointService getService(String serverUrl, int responseTimeoutSeconds) {
+    private PayPointService getService(String serverUrl, int responseTimeoutSeconds)
+        throws NoSuchAlgorithmException, KeyManagementException {
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS")
@@ -72,6 +84,12 @@ public class PaymentManager {
 
         // setting the executor is required for the Robolectric tests to run
         Executor executor = Executors.newSingleThreadExecutor();
+
+        // by default Retrofit will throw an error if self signed certificate is used so allow
+        // self signed certificate for custom URLs e.g. anything other than production
+        if (EndpointManager.isCustomUrl(serverUrl)) {
+            okHttpClient.setSslSocketFactory(new SelfSignedSocketFactory().build());
+        }
 
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(serverUrl)
@@ -131,8 +149,14 @@ public class PaymentManager {
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
                 .setBillingAddress(request.getAddress()));
 
-        PayPointService service = getService(url,
-                responseTimeoutSeconds);
+        PayPointService service = null;
+
+        try {
+            service = getService(url,
+                    responseTimeoutSeconds);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set up payment service");
+        }
 
         service.makePayment(jsonRequest, "Bearer " +
                 credentials.getToken(), credentials.getInstallationId(),
