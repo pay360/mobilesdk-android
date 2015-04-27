@@ -19,6 +19,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.Calendar;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +83,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
                 .setCard(card)
                 .setAddress(address)
                 .setCallback(this);
+
+        url = "https://192.168.6.143";
 
         pm.setUrl(url);
         pm.setCredentials(credentials);
@@ -283,16 +286,59 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         }
     }
 
-//    public void testCardExpired() throws Exception {
-//        card.setExpiryDate("0315");
-//
-//        try {
-//            makePayment();
-//            Assert.fail();
-//        } catch (PaymentValidationException e) {
-//            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRED);
-//        }
-//    }
+    @Test
+    public void testCardExpired() throws Exception {
+
+        Calendar c = Calendar.getInstance();
+        int month = c.get(Calendar.MONTH);
+        int year = c.get(Calendar.YEAR);
+
+        year -= 2000;
+
+        // months are indexed from 0 so should give an expired month
+
+        String expiry = String.format("%02d%02d", month, year);
+        card.setExpiryDate(expiry);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRED);
+        }
+    }
+
+    @Test
+    public void testCardExpiryValid() throws Exception {
+
+        Calendar c = Calendar.getInstance();
+        int month = c.get(Calendar.MONTH);
+        int year = c.get(Calendar.YEAR);
+
+        year -= 2000;
+
+        // months are indexed from 0 so should add one to get current month
+        month += 1;
+
+        String expiry = String.format("%02d%02d", month, year);
+        card.setExpiryDate(expiry);
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testCardExpiryAlpha() throws Exception {
+        card.setExpiryDate("abcd");
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CARD_EXPIRY_INVALID);
+        }
+    }
 
     @Test
     public void testTransactionZeroAmount() throws Exception {

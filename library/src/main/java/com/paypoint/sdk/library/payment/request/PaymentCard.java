@@ -98,10 +98,10 @@ public class PaymentCard {
             throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRY_INVALID);
         }
 
-//        // check expiry
-//        if (expiryUtils.isCardExpired(expiryDate, new Date())) {
-//            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRED);
-//        }
+        // check expiry
+        if (expiryUtils.isCardExpired(expiryDate, new Date())) {
+            throw new PaymentValidationException(PaymentValidationException.ErrorCode.CARD_EXPIRED);
+        }
     }
 
     public static void validateCv2(String cv2) throws PaymentValidationException {
