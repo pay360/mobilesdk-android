@@ -51,7 +51,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private PaymentSuccess responseSuccess;
     private PaymentError responseError;
 
-    private String url = "http://192.168.3.108:5000";
+    private String url = "http://localhost:5000";
 
     @Before
     public void setUp() {
