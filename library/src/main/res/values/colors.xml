@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="paypoint_yellow">#FFF5D40E</color>
+    <color name="paypoint_blue">#FF2E2556</color>
+    <color name="paypoint_grey">#FFA59D95</color>
+    <color name="paypoint_grey_25">#3FA59D95</color>
+    <color name="paypoint_grey_50">#7FA59D95</color>
+    <color name="paypoint_grey_75">#BDA59D95</color>
+    <color name="black_transparency">#7F000000</color>
+
+</resources>

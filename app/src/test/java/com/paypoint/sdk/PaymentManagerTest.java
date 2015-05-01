@@ -56,7 +56,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     @Before
     public void setUp() {
 
-        pm = new PaymentManager(Robolectric.application);
+        pm = PaymentManager.getInstance(Robolectric.application);
 
         Robolectric.getFakeHttpLayer().interceptHttpRequests(false);
         Robolectric.getFakeHttpLayer().interceptResponseContent(false);
@@ -81,14 +81,14 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         request = new PaymentRequest();
         request.setTransaction(transaction)
                 .setCard(card)
-                .setAddress(address)
-                .setCallback(this);
+                .setAddress(address);
 
         // self signed cert
         //url = "https://192.168.6.143";
 
         pm.setUrl(url);
         pm.setCredentials(credentials);
+        pm.registerPaymentCallback(this);
     }
 
     @Test

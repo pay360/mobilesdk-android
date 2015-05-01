@@ -5,14 +5,14 @@
 package com.paypoint.sdk.library.payment;
 
 import android.content.Context;
-import android.net.SSLCertificateSocketFactory;
+import android.content.Intent;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.paypoint.sdk.library.ThreeDSActivity;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
-import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
@@ -26,20 +26,13 @@ import com.squareup.okhttp.OkHttpClient;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
-import retrofit.android.AndroidLog;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
@@ -51,8 +44,11 @@ import retrofit.mime.TypedByteArray;
  */
 public class PaymentManager {
 
-    private static final int HTTP_TIMEOUT_CONNECTION    = 20; // 20s
-    private static final int HTTP_TIMEOUT_RESPONSE      = 60; // 60s
+    private static final int HTTP_TIMEOUT_CONNECTION                = 20; // 20s
+    private static final int HTTP_TIMEOUT_RESPONSE                  = 60; // 60s
+
+    private static final int REASON_SUSPENDED_FOR_3D_SECURE         = 7;
+    private static final int REASON_SUSPENDED_FOR_CLIENT_REDIRECT   = 8; // TODO what is this used for?
 
     public interface MakePaymentCallback {
 
@@ -65,9 +61,33 @@ public class PaymentManager {
     private int responseTimeoutSeconds = HTTP_TIMEOUT_RESPONSE;
     private String url;
     private PayPointCredentials credentials;
+    private PaymentManager.MakePaymentCallback callback;
+    private boolean callbackLocked = false;
+    private CallbackPending callbackPending;
 
-    public PaymentManager(Context context) {
-        this.context = context;
+    private static PaymentManager instance;
+
+    private class CallbackPending {
+
+        private boolean isError;
+        private PaymentSuccess paymentSuccess;
+        private PaymentError paymentError;
+    }
+
+    // Requires a singleton to maintain state between screen orientation changes
+    public synchronized static PaymentManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new PaymentManager(context);
+        }
+        return instance;
+    }
+
+    private PaymentManager() {
+        // private as a singleton
+    }
+
+    private PaymentManager(Context context) {
+        this.context = context.getApplicationContext();
     }
 
     private PayPointService getService(String serverUrl, int responseTimeoutSeconds)
@@ -75,7 +95,6 @@ public class PaymentManager {
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS")
-//                .serializeNulls()
                 .create();
 
         OkHttpClient okHttpClient = new OkHttpClient();
@@ -116,8 +135,39 @@ public class PaymentManager {
         return this;
     }
 
+    public synchronized void registerPaymentCallback(PaymentManager.MakePaymentCallback callback) {
+        this.callback = callback;
+    }
+
+    public synchronized void unregisterPaymentCallback() {
+        this.callback = null;
+    }
+
+    public synchronized void lockCallback() {
+        this.callbackLocked = true;
+    }
+
+    public synchronized void unlockCallback() {
+        this.callbackLocked = false;
+
+        // send back pending response
+        if (callback != null) {
+            if (callbackPending != null) {
+                if (callbackPending.isError) {
+                    callback.paymentFailed(callbackPending.paymentError);
+                } else {
+                    callback.paymentSucceeded(callbackPending.paymentSuccess);
+                }
+                callbackPending = null;
+            }
+        }
+    }
+
     public void makePayment(final PaymentRequest request)
             throws PaymentValidationException {
+
+        // ensure last payment is forgotten
+        callbackPending = null;
 
         // check network
         if (!NetworkManager.hasConnection(context)) {
@@ -144,10 +194,11 @@ public class PaymentManager {
             throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
         }
 
+
         // call REST endpoint
         Request jsonRequest = new Request().setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
-                .setBillingAddress(request.getAddress()));
+                        .setBillingAddress(request.getAddress()));
 
         PayPointService service = null;
 
@@ -159,18 +210,18 @@ public class PaymentManager {
         }
 
         service.makePayment(jsonRequest, "Bearer " +
-                credentials.getToken(), credentials.getInstallationId(),
-                new Callback<Response>() {
-                    @Override
-                    public void success(Response paymentResponse, retrofit.client.Response response) {
-                        onPaymentSucceeded(paymentResponse, response, request.getCallback());
-                    }
+                    credentials.getToken(), credentials.getInstallationId(),
+            new Callback<Response>() {
+                @Override
+                public void success(Response paymentResponse, retrofit.client.Response response) {
+                    onPaymentSucceeded(paymentResponse, response);
+                }
 
-                    @Override
-                    public void failure(RetrofitError error) {
-                       onPaymentFailed(error, request.getCallback());
-                    }
-                });
+                @Override
+                public void failure(RetrofitError error) {
+                    onPaymentFailed(error);
+                }
+            });
     }
 
     public void validatePaymentDetails(PaymentRequest request)
@@ -213,14 +264,24 @@ public class PaymentManager {
      * Callback when payment succeeds
      * @param paymentResponse
      * @param response
-     * @param callback
      */
-    private void onPaymentSucceeded(Response paymentResponse, retrofit.client.Response response,
-                                  MakePaymentCallback callback) {
-        if (callback != null) {
+    private void onPaymentSucceeded(Response paymentResponse, retrofit.client.Response response) {
 
-            if (paymentResponse != null &&
-                paymentResponse.isSuccessful()) {
+        if (paymentResponse != null &&
+            paymentResponse.isSuccessful()) {
+
+            // TODO check if 3D secure
+            if (paymentResponse.getReasonCode() == REASON_SUSPENDED_FOR_3D_SECURE) {
+                // show 3D secure in separate activity
+                // TODO get ACS URL + timeout + term url from response and pass to activity
+
+                Intent intent = new Intent(context, ThreeDSActivity.class);
+                intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, "");
+                intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, "");
+                intent.putExtra(ThreeDSActivity.EXTRA_TIMEOUT, "");
+
+                context.startActivity(intent);
+            } else {
                 // payment successful - build success object
                 PaymentSuccess success = new PaymentSuccess();
 
@@ -230,48 +291,72 @@ public class PaymentManager {
                 success.setMerchantReference(paymentResponse.getMerchantRef());
                 success.setLastFour(paymentResponse.getLastFourDigits());
 
-                callback.paymentSucceeded(success);
-            } else {
-                // payment failed
-                PaymentError error = new PaymentError();
-                error.setKind(PaymentError.Kind.PAYPOINT);
-                error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
-                error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
-
-                callback.paymentFailed(error);
+                executeCallback(success);
             }
+        } else {
+            // payment failed
+            PaymentError error = new PaymentError();
+            error.setKind(PaymentError.Kind.PAYPOINT);
+            error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
+            error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+
+            executeCallback(error);
         }
     }
 
     /**
      * Callback when payment fails
      * @param retrofitError
-     * @param callback
      */
-    private void onPaymentFailed(RetrofitError retrofitError,
-                                 MakePaymentCallback callback) {
-        if (callback != null) {
+    private void onPaymentFailed(RetrofitError retrofitError) {
 
-            PaymentError error = new PaymentError();
+        PaymentError error = new PaymentError();
 
-            error.setKind(PaymentError.Kind.NETWORK);
+        error.setKind(PaymentError.Kind.NETWORK);
 
-            if (retrofitError != null) {
+        if (retrofitError != null) {
 
-                if (retrofitError.getResponse() != null) {
-                    error.getNetworkError().setHttpStatusCode(retrofitError.getResponse().getStatus());
+            if (retrofitError.getResponse() != null) {
+                error.getNetworkError().setHttpStatusCode(retrofitError.getResponse().getStatus());
 
-                    // attempt to parse JSON in the response
-                    Response paymentResponse = parseErrorResponse(retrofitError);
+                // attempt to parse JSON in the response
+                Response paymentResponse = parseErrorResponse(retrofitError);
 
-                    if (paymentResponse != null) {
-                        error.setKind(PaymentError.Kind.PAYPOINT);
-                        error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
-                        error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
-                    }
+                if (paymentResponse != null) {
+                    error.setKind(PaymentError.Kind.PAYPOINT);
+                    error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
+                    error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
                 }
             }
-            callback.paymentFailed(error);
+        }
+        executeCallback(error);
+    }
+
+    private synchronized void executeCallback(PaymentError error) {
+        if (callbackLocked) {
+            // store callback for when the callee re-registers the callback
+            callbackPending = new CallbackPending();
+            callbackPending.isError = true;
+            callbackPending.paymentError = error;
+        } else {
+            if (callback != null) {
+                callback.paymentFailed(error);
+                callbackPending = null;
+            }
+        }
+    }
+
+    private synchronized void executeCallback(PaymentSuccess success) {
+        if (callbackLocked) {
+            // store callback for when the callee re-registers the callback
+            callbackPending = new CallbackPending();
+            callbackPending.isError = false;
+            callbackPending.paymentSuccess = success;
+        } else {
+            if (callback != null) {
+                callback.paymentSucceeded(success);
+                callbackPending = null;
+            }
         }
     }
 

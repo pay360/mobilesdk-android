@@ -22,8 +22,6 @@ public class PaymentRequest {
 
     private BillingAddress address;
 
-    private PaymentManager.MakePaymentCallback callback;
-
     public Transaction getTransaction() {
         return transaction;
     }
@@ -48,15 +46,6 @@ public class PaymentRequest {
 
     public PaymentRequest setAddress(BillingAddress address) {
         this.address = address;
-        return this;
-    }
-
-    public PaymentManager.MakePaymentCallback getCallback() {
-        return callback;
-    }
-
-    public PaymentRequest setCallback(PaymentManager.MakePaymentCallback callback) {
-        this.callback = callback;
         return this;
     }
 }
