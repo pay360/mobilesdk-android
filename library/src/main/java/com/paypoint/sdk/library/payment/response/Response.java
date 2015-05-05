@@ -1,5 +1,7 @@
 package com.paypoint.sdk.library.payment.response;
 
+import android.text.TextUtils;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -20,8 +22,15 @@ public class Response {
     @SerializedName("outcome")
     private Outcome outcome;
 
+    @SerializedName("threeDSRedirect")
+    private threeDSecure threeDSecure;
+
     public boolean isSuccessful() {
         return outcome != null && outcome.isSuccessful();
+    }
+
+    public boolean isPending() {
+        return outcome != null && outcome.isPending();
     }
 
     public float getAmount() {
@@ -106,6 +115,10 @@ public class Response {
         return status;
     }
 
+    public Response.threeDSecure getThreeDSecure() {
+        return threeDSecure;
+    }
+
     private static class Transaction {
 
         @SerializedName("transactionId")
@@ -185,6 +198,7 @@ public class Response {
     private class Outcome {
 
         private static final String RESPONSE_SUCCESS = "SUCCESS";
+        private static final String RESPONSE_PENDING = "PENDING";
 
         @SerializedName("status")
         private String status;
@@ -209,6 +223,65 @@ public class Response {
 
         public boolean isSuccessful() {
             return RESPONSE_SUCCESS.equalsIgnoreCase(status);
+        }
+
+        public boolean isPending() {
+            return RESPONSE_PENDING.equalsIgnoreCase(status);
+        }
+    }
+
+    public class threeDSecure {
+
+        @SerializedName("acsUrl")
+        private String acsUrl;
+
+        @SerializedName("pareq")
+        private String pareq;
+
+        @SerializedName("termUrl")
+        private String termUrl;
+
+        @SerializedName("md")
+        private String md;
+
+        @SerializedName("sessionTimeout")
+        private int sessionTimeout;
+
+        public String getAcsUrl() {
+            return acsUrl;
+        }
+
+        public String getPareq() {
+            return pareq;
+        }
+
+        public String getTermUrl() {
+            return termUrl;
+        }
+
+        public String getMd() {
+            return md;
+        }
+
+        public int getSessionTimeout() {
+            return sessionTimeout;
+        }
+
+        public boolean validateData() {
+            if (TextUtils.isEmpty(acsUrl)) {
+                return false;
+            }
+            if (TextUtils.isEmpty(pareq)) {
+                return false;
+            }
+            if (TextUtils.isEmpty(termUrl)) {
+                return false;
+            }
+            if (TextUtils.isEmpty(md)) {
+                return false;
+            }
+
+            return true;
         }
     }
 }

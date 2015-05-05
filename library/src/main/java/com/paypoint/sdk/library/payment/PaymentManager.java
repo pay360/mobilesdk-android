@@ -4,8 +4,10 @@
 
 package com.paypoint.sdk.library.payment;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -19,7 +21,8 @@ import com.paypoint.sdk.library.network.PayPointService;
 import com.paypoint.sdk.library.network.SelfSignedSocketFactory;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
-import com.paypoint.sdk.library.payment.request.Request;
+import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
+import com.paypoint.sdk.library.payment.request.ThreeDSResumeRequest;
 import com.paypoint.sdk.library.payment.response.Response;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
@@ -48,7 +51,7 @@ public class PaymentManager {
     private static final int HTTP_TIMEOUT_RESPONSE                  = 60; // 60s
 
     private static final int REASON_SUSPENDED_FOR_3D_SECURE         = 7;
-    private static final int REASON_SUSPENDED_FOR_CLIENT_REDIRECT   = 8; // TODO what is this used for?
+    private static final int REASON_SUSPENDED_FOR_CLIENT_REDIRECT   = 8;
 
     public interface MakePaymentCallback {
 
@@ -88,6 +91,10 @@ public class PaymentManager {
 
     private PaymentManager(Context context) {
         this.context = context.getApplicationContext();
+
+        // register to receive events from 3DS activity
+        this.context.registerReceiver(new ThreeDSecureReceiver(),
+                new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
     }
 
     private PayPointService getService(String serverUrl, int responseTimeoutSeconds)
@@ -163,7 +170,7 @@ public class PaymentManager {
         }
     }
 
-    public void makePayment(final PaymentRequest request)
+    public void makePayment(final com.paypoint.sdk.library.payment.PaymentRequest request)
             throws PaymentValidationException {
 
         // ensure last payment is forgotten
@@ -196,7 +203,7 @@ public class PaymentManager {
 
 
         // call REST endpoint
-        Request jsonRequest = new Request().setTransaction(request.getTransaction())
+        MakePaymentRequest jsonRequest = new MakePaymentRequest().setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
                         .setBillingAddress(request.getAddress()));
 
@@ -224,7 +231,7 @@ public class PaymentManager {
             });
     }
 
-    public void validatePaymentDetails(PaymentRequest request)
+    public void validatePaymentDetails(com.paypoint.sdk.library.payment.PaymentRequest request)
             throws PaymentValidationException {
 
         if (request == null) {
@@ -268,19 +275,38 @@ public class PaymentManager {
     private void onPaymentSucceeded(Response paymentResponse, retrofit.client.Response response) {
 
         if (paymentResponse != null &&
-            paymentResponse.isSuccessful()) {
+            (paymentResponse.isSuccessful() ||
+            paymentResponse.isPending())) {
 
-            // TODO check if 3D secure
+            // check if 3D secure redirect
             if (paymentResponse.getReasonCode() == REASON_SUSPENDED_FOR_3D_SECURE) {
-                // show 3D secure in separate activity
-                // TODO get ACS URL + timeout + term url from response and pass to activity
 
-                Intent intent = new Intent(context, ThreeDSActivity.class);
-                intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, "");
-                intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, "");
-                intent.putExtra(ThreeDSActivity.EXTRA_TIMEOUT, "");
+                // ensure response contains valid 3DS credentials
+                Response.threeDSecure threeDSecure = paymentResponse.getThreeDSecure();
 
-                context.startActivity(intent);
+                if (threeDSecure == null ||
+                   !threeDSecure.validateData()) {
+                    PaymentError error = new PaymentError();
+                    error.setKind(PaymentError.Kind.PAYPOINT);
+                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.SERVER_ERROR);
+                    error.getPayPointError().setReasonMessage("Missing 3D Secure credentials");
+
+                    executeCallback(error);
+                } else {
+
+                    // show 3D secure in separate activity
+                    Intent intent = new Intent(context, ThreeDSActivity.class);
+                    intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, threeDSecure.getAcsUrl());
+                    intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, threeDSecure.getTermUrl());
+                    intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, threeDSecure.getPareq());
+                    intent.putExtra(ThreeDSActivity.EXTRA_MD, threeDSecure.getMd());
+                    intent.putExtra(ThreeDSActivity.EXTRA_TIMEOUT, threeDSecure.getSessionTimeout());
+
+                    // required as starting the activity from an application context
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    context.startActivity(intent);
+                }
             } else {
                 // payment successful - build success object
                 PaymentSuccess success = new PaymentSuccess();
@@ -386,5 +412,56 @@ public class PaymentManager {
         }
 
         return response;
+    }
+
+    /**
+     * Receiver for broadcast events from ThreeDSActivity
+     */
+    private class ThreeDSecureReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if (intent.getBooleanExtra(ThreeDSActivity.EXTRA_SUCCESS, false)) {
+                // 3DS successful - post to resume endpoint
+                String transactionId = intent.getStringExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID);
+                String pares = intent.getStringExtra(ThreeDSActivity.EXTRA_PARES);
+
+                // TODO check pares != null and md same as md sent up
+
+                ThreeDSResumeRequest jsonRequest = new ThreeDSResumeRequest(pares);
+
+                PayPointService service = null;
+
+                try {
+                    service = getService(url,
+                            responseTimeoutSeconds);
+                } catch (Exception e) {
+                    // TODO send back error
+                }
+
+                service.resume3DS(jsonRequest, "Bearer " +
+                                credentials.getToken(), credentials.getInstallationId(),
+                                transactionId,
+                        new Callback<Response>() {
+                            @Override
+                            public void success(Response paymentResponse, retrofit.client.Response response) {
+                                onPaymentSucceeded(paymentResponse, response);
+                            }
+
+                            @Override
+                            public void failure(RetrofitError error) {
+                                onPaymentFailed(error);
+                            }
+                        });
+            } else {
+                // 3DS failure
+                PaymentError error = new PaymentError();
+                error.setKind(PaymentError.Kind.PAYPOINT);
+                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.THREE_D_SECURE_ERROR);
+                error.getPayPointError().setReasonMessage("");
+
+                executeCallback(error);
+            }
+        }
     }
 }

@@ -4,7 +4,8 @@
 
 package com.paypoint.sdk.library.network;
 
-import com.paypoint.sdk.library.payment.request.Request;
+import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
+import com.paypoint.sdk.library.payment.request.ThreeDSResumeRequest;
 import com.paypoint.sdk.library.payment.response.Response;
 
 import retrofit.Callback;
@@ -23,8 +24,16 @@ public interface PayPointService {
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/acceptor/rest/mobile/transactions/{installationId}/payment")
-    void makePayment(@Body Request request,
+    void makePayment(@Body MakePaymentRequest request,
                     @Header("Authorization") String token,
                     @Path("installationId") String installationId,
                     Callback<Response> callback);
+
+    @Headers("Content-Type: application/json; charset=utf-8")
+    @POST("/acceptor/rest/mobile/transactions/{installationId}/{transactionId}/resume")
+    void resume3DS(@Body ThreeDSResumeRequest request,
+                     @Header("Authorization") String token,
+                     @Path("installationId") String installationId,
+                     @Path("transactionId") String transactionId,
+                     Callback<Response> callback);
 }

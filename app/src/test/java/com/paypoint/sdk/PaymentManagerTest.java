@@ -475,6 +475,15 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         }
     }
 
+    @Test
+    public void test3Ds() throws Exception {
+        card.setPan("9902000000005132");
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
     private void makePayment() throws Exception {
         success = false;
 
