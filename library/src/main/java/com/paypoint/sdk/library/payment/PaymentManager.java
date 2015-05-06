@@ -15,6 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.ThreeDSActivity;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
+import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.android.AndroidLog;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
@@ -121,6 +123,8 @@ public class PaymentManager {
                 .setEndpoint(serverUrl)
                 .setExecutors(executor, executor)
                 .setConverter(new GsonConverter(gson))
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLog(new AndroidLog(Logger.TAG))
                 .setClient(new OkClient(okHttpClient))
                 .build();
 
@@ -200,7 +204,6 @@ public class PaymentManager {
         } catch (InvalidCredentialsException e) {
             throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
         }
-
 
         // call REST endpoint
         MakePaymentRequest jsonRequest = new MakePaymentRequest().setTransaction(request.getTransaction())
@@ -300,6 +303,7 @@ public class PaymentManager {
                     intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, threeDSecure.getTermUrl());
                     intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, threeDSecure.getPareq());
                     intent.putExtra(ThreeDSActivity.EXTRA_MD, threeDSecure.getMd());
+                    intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, paymentResponse.getTransactionId());
                     intent.putExtra(ThreeDSActivity.EXTRA_TIMEOUT, threeDSecure.getSessionTimeout());
 
                     // required as starting the activity from an application context
@@ -425,6 +429,7 @@ public class PaymentManager {
                 // 3DS successful - post to resume endpoint
                 String transactionId = intent.getStringExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID);
                 String pares = intent.getStringExtra(ThreeDSActivity.EXTRA_PARES);
+                String md = intent.getStringExtra(ThreeDSActivity.EXTRA_MD);
 
                 // TODO check pares != null and md same as md sent up
 

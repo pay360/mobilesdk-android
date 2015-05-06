@@ -4,12 +4,14 @@
 
 package com.paypoint.sdk.library;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -113,7 +115,7 @@ public class ThreeDSActivity extends ActionBarActivity {
             sessionTimeoutTask = new SessionTimeoutTask();
 
             // callback when session timeout expired. Session timeout is in ms
-            sessionTimerHandler.postDelayed(sessionTimeoutTask, sessionTimeout / 1000);
+            sessionTimerHandler.postDelayed(sessionTimeoutTask, sessionTimeout);
         }
     }
 
@@ -121,14 +123,14 @@ public class ThreeDSActivity extends ActionBarActivity {
         @Override
         public void run() {
             // callback with success=false
-            on3DSFinished(null, false);
+            on3DSFailure();
         }
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        on3DSFinished(null, false);
+        on3DSFailure();
     }
 
     /**
@@ -151,15 +153,28 @@ public class ThreeDSActivity extends ActionBarActivity {
             form.writeTo(encodedParams);
             webView.postUrl(acsUrl, encodedParams.toByteArray());
         } catch (IOException e) {
-            on3DSFinished(null, false);
+            on3DSFailure();
         }
     }
 
-    private void on3DSFinished(String pares, boolean success) {
+    private void on3DSSuccess(String pares, String md) {
+        on3DSFinished(pares, md, true);
+    }
+
+    private void on3DSFailure() {
+        on3DSFinished(null, null, false);
+    }
+
+    private void on3DSFinished(String pares, String md, boolean success) {
         // end of 3DS - broadcast event for PaymentManager to pick up
         Intent intent = new Intent(ACTION_COMPLETED);
-        intent.putExtra(EXTRA_PARES, pares);
-        intent.putExtra(EXTRA_TRANSACTION_ID, transactionId);
+
+        if (success) {
+            intent.putExtra(EXTRA_PARES, pares);
+            intent.putExtra(EXTRA_MD, md);
+            intent.putExtra(EXTRA_TRANSACTION_ID, transactionId);
+        }
+
         intent.putExtra(EXTRA_SUCCESS, success);
 
         sendBroadcast(intent);
@@ -191,65 +206,30 @@ public class ThreeDSActivity extends ActionBarActivity {
 
     private class CustomWebViewClient extends WebViewClient {
 
-        // TODO - do we need this anymore?
-//        @Override
-//        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-//            // allow links to be loaded in the webview
-//            view.loadUrl(url);
-//            return true;
-//        }
-
-
-//        @Override
-//        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-//
-//            if (url.contains(termUrl)) {
-//
-//                // TODO run some JS to call function to return pares and md
-//                webView.loadUrl("javascript:get3DSData();");
-//
-//            } else {
-//                super.onPageStarted(view, url, favicon);
-//            }
-//        }
-
         @Override
         public void onPageFinished(WebView view, String url) {
+            // TODO any way to stop this page showing but still being able to call loadUrl?
+            // TODO doesn't work if call loadUrl from onPageStarted
             if (url.contains(termUrl)) {
 
-                super.onPageFinished(view, url);
-                // TODO run some JS to call function to return pares and md
+                // call JS to get back pares - get3DSData calls back into WebAppInterface.getData()
                 webView.loadUrl("javascript:get3DSData();");
-
+                webView.stopLoading();
             } else {
                 super.onPageFinished(view, url);
             }
         }
 
-        // TODO think we can do everything in onPageStarted? May need to wait until onPageFinished
-        // to invoke JS on the page though??
-//        @Override
-//        public void onPageFinished(WebView view, String url) {
-//            super.onPageFinished(view, url);
-//
-//            // TODO check for term url
-//
-//            // TODO if term url inject some javascript which kicks off setParRes
-////            http://stackoverflow.com/questions/7544671/how-to-call-javascript-from-android
-////            WebView.loadUrl("javascript: var result = window.YourJSLibrary.callSomeFunction();
-////                    window.JavaCallback.returnResult(result)");
-//        }
-
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             view.stopLoading();
-            on3DSFinished(null, false);
+            on3DSFailure();
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
             view.stopLoading();
-            on3DSFinished(null, false);
+            on3DSFailure();
         }
     }
 
@@ -258,11 +238,9 @@ public class ThreeDSActivity extends ActionBarActivity {
      */
     public class WebAppInterface {
 
-        // TODO this needs to be finalised
         @JavascriptInterface
         public void getData(String pares, String md) {
-            on3DSFinished(pares, true);
-
+            on3DSSuccess(pares, md);
         }
     }
 }

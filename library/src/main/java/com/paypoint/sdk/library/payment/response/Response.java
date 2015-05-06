@@ -245,7 +245,7 @@ public class Response {
         private String md;
 
         @SerializedName("sessionTimeout")
-        private int sessionTimeout;
+        private long sessionTimeout;
 
         public String getAcsUrl() {
             return acsUrl;
@@ -263,7 +263,7 @@ public class Response {
             return md;
         }
 
-        public int getSessionTimeout() {
+        public long getSessionTimeout() {
             return sessionTimeout;
         }
 
