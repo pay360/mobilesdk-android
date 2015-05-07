@@ -17,7 +17,9 @@ public class PaymentError {
     }
 
     public enum ReasonCode {
-        THREE_D_SECURE_ERROR(-2),           // Error occured processing 3D Secure
+        TRANSACTION_CANCELLED(-4),          // Transaction cancelled by user
+        THREE_D_SECURE_TIMEOUT(-3),         // Timeout waiting for 3D Secure
+        THREE_D_SECURE_ERROR(-2),           // Error occurred processing 3D Secure
         UNKNOWN(-1),
         SUCCESS(0),                         // Operation successful as described
         INVALID(1),                         // Request was not correctly formed
@@ -26,7 +28,6 @@ public class PaymentError {
         UNAUTHORISED_REQUEST(4),            // The token was valid, but does not grant you access to use the specified feature
         TRANSACTION_FAILED_TO_PROCESS(5),   // The transaction was successfully submitted but failed to be processed correctly.
         SERVER_ERROR(6);                    // An internal server error occurred at paypoint
-
 
         int code;
 

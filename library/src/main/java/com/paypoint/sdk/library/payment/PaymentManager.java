@@ -69,6 +69,7 @@ public class PaymentManager {
     private PaymentManager.MakePaymentCallback callback;
     private boolean callbackLocked = false;
     private CallbackPending callbackPending;
+    private boolean isCustomUrl;
 
     private static PaymentManager instance;
 
@@ -113,18 +114,21 @@ public class PaymentManager {
         // setting the executor is required for the Robolectric tests to run
         Executor executor = Executors.newSingleThreadExecutor();
 
+        isCustomUrl = false;
+
         // by default Retrofit will throw an error if self signed certificate is used so allow
         // self signed certificate for custom URLs e.g. anything other than production
         if (EndpointManager.isCustomUrl(serverUrl)) {
             okHttpClient.setSslSocketFactory(new SelfSignedSocketFactory().build());
+            isCustomUrl = true;
         }
 
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(serverUrl)
                 .setExecutors(executor, executor)
                 .setConverter(new GsonConverter(gson))
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setLog(new AndroidLog(Logger.TAG))
+//                .setLogLevel(RestAdapter.LogLevel.FULL)
+//                .setLog(new AndroidLog(Logger.TAG))
                 .setClient(new OkClient(okHttpClient))
                 .build();
 
@@ -304,7 +308,8 @@ public class PaymentManager {
                     intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, threeDSecure.getPareq());
                     intent.putExtra(ThreeDSActivity.EXTRA_MD, threeDSecure.getMd());
                     intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, paymentResponse.getTransactionId());
-                    intent.putExtra(ThreeDSActivity.EXTRA_TIMEOUT, threeDSecure.getSessionTimeout());
+                    intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, threeDSecure.getSessionTimeout());
+                    intent.putExtra(ThreeDSActivity.EXTRA_ALLOW_SELF_SIGNED_CERTS, isCustomUrl);
 
                     // required as starting the activity from an application context
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -431,7 +436,7 @@ public class PaymentManager {
                 String pares = intent.getStringExtra(ThreeDSActivity.EXTRA_PARES);
                 String md = intent.getStringExtra(ThreeDSActivity.EXTRA_MD);
 
-                // TODO check pares != null and md same as md sent up
+                // TODO need to check nd md same as md sent up - do this in ThreeDSActivity?
 
                 ThreeDSResumeRequest jsonRequest = new ThreeDSResumeRequest(pares);
 
@@ -441,7 +446,11 @@ public class PaymentManager {
                     service = getService(url,
                             responseTimeoutSeconds);
                 } catch (Exception e) {
-                    // TODO send back error
+                    PaymentError error = new PaymentError();
+                    error.setKind(PaymentError.Kind.PAYPOINT);
+                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.UNKNOWN);
+
+                    executeCallback(error);
                 }
 
                 service.resume3DS(jsonRequest, "Bearer " +
@@ -462,8 +471,20 @@ public class PaymentManager {
                 // 3DS failure
                 PaymentError error = new PaymentError();
                 error.setKind(PaymentError.Kind.PAYPOINT);
-                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.THREE_D_SECURE_ERROR);
-                error.getPayPointError().setReasonMessage("");
+
+                boolean cancelled = intent.getBooleanExtra(ThreeDSActivity.EXTRA_CANCELLED, false);
+                boolean timeout = intent.getBooleanExtra(ThreeDSActivity.EXTRA_HAS_TIMED_OUT, false);
+
+                if (cancelled) {
+                    error.getPayPointError().setReasonMessage("Transaction cancelled");
+                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_CANCELLED);
+                } else if (timeout) {
+                    error.getPayPointError().setReasonMessage("3D Secure timed out");
+                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.THREE_D_SECURE_TIMEOUT);
+                } else {
+                    error.getPayPointError().setReasonMessage("3D Secure failed");
+                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.THREE_D_SECURE_ERROR);
+                }
 
                 executeCallback(error);
             }
