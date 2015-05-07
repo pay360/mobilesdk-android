@@ -18,12 +18,16 @@ import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.paypoint.sdk.library.log.Logger;
+import com.paypoint.sdk.library.utils.PackageUtils;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -42,18 +46,20 @@ import java.util.List;
  */
 public class ThreeDSActivity extends ActionBarActivity {
 
-    public static final String ACTION_COMPLETED         = "com.paypoint.sdk.library.ACTION_COMPLETED";
-    public static final String EXTRA_SUCCESS            = "com.paypoint.sdk.library.EXTRA_SUCCESS";
+    public static final String ACTION_COMPLETED                 = "com.paypoint.sdk.library.ACTION_COMPLETED";
+    public static final String EXTRA_SUCCESS                    = "com.paypoint.sdk.library.EXTRA_SUCCESS";
 
-    public static final String EXTRA_ACS_URL            = "com.paypoint.sdk.library.EXTRA_ACS_URL";
-    public static final String EXTRA_TERM_URL           = "com.paypoint.sdk.library.EXTRA_TERM_URL";
-    public static final String EXTRA_PAREQ              = "com.paypoint.sdk.library.EXTRA_PAREQ";
-    public static final String EXTRA_MD                 = "com.paypoint.sdk.library.EXTRA_MD";
-    public static final String EXTRA_TIMEOUT            = "com.paypoint.sdk.library.EXTRA_TIMEOUT";
-    public static final String EXTRA_PARES              = "com.paypoint.sdk.library.EXTRA_PARES";
-    public static final String EXTRA_TRANSACTION_ID     = "com.paypoint.sdk.library.EXTRA_TRANSACTION_ID";
+    public static final String EXTRA_ACS_URL                    = "com.paypoint.sdk.library.EXTRA_ACS_URL";
+    public static final String EXTRA_TERM_URL                   = "com.paypoint.sdk.library.EXTRA_TERM_URL";
+    public static final String EXTRA_PAREQ                      = "com.paypoint.sdk.library.EXTRA_PAREQ";
+    public static final String EXTRA_MD                         = "com.paypoint.sdk.library.EXTRA_MD";
+    public static final String EXTRA_SESSION_TIMEOUT            = "com.paypoint.sdk.library.EXTRA_SESSION_TIMEOUT";
+    public static final String EXTRA_PARES                      = "com.paypoint.sdk.library.EXTRA_PARES";
+    public static final String EXTRA_TRANSACTION_ID             = "com.paypoint.sdk.library.EXTRA_TRANSACTION_ID";
+    public static final String EXTRA_HAS_TIMED_OUT              = "com.paypoint.sdk.library.EXTRA_HAS_TIMED_OUT";
+    public static final String EXTRA_CANCELLED                  = "com.paypoint.sdk.library.TRANSACTION_CANCELLED";
+    public static final String EXTRA_ALLOW_SELF_SIGNED_CERTS    = "com.paypoint.sdk.library.EXTRA_ALLOW_SELF_SIGNED_CERTS";
 
-    // TODO this needs to be finalised
     private static final String JAVASCRIPT_INTERFACE = "paypoint";
 
     private WebView webView;
@@ -62,6 +68,7 @@ public class ThreeDSActivity extends ActionBarActivity {
     private String termUrl;
     private String pareq;
     private String md;
+    private boolean allowSelfSignedCerts;
     private String transactionId;
     private Handler sessionTimerHandler;
     private SessionTimeoutTask sessionTimeoutTask;
@@ -90,47 +97,34 @@ public class ThreeDSActivity extends ActionBarActivity {
         pareq = getIntent().getStringExtra(EXTRA_PAREQ);
         md = getIntent().getStringExtra(EXTRA_MD);
         transactionId = getIntent().getStringExtra(EXTRA_TRANSACTION_ID);
+        allowSelfSignedCerts = getIntent().getBooleanExtra(EXTRA_ALLOW_SELF_SIGNED_CERTS, false);
 
         webView = (WebView)findViewById(R.id.webView);
 
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.addJavascriptInterface(new WebAppInterface(), JAVASCRIPT_INTERFACE);
+//        webView.getSettings().setSupportMultipleWindows(true);
 
         webView.setWebViewClient(new CustomWebViewClient());
         webView.setWebChromeClient(new CustomWebChromeClient());
 
-        loadAcsPage(acsUrl,
-                pareq,
-                md,
-                termUrl);
-
-        long sessionTimeout = getIntent().getLongExtra(EXTRA_TIMEOUT, 0);
-
-        if (sessionTimeout > 0) {
-
-            // start a timer to wait for the term url
-            sessionTimerHandler = new Handler();
-
-            sessionTimeoutTask = new SessionTimeoutTask();
-
-            // callback when session timeout expired. Session timeout is in ms
-            sessionTimerHandler.postDelayed(sessionTimeoutTask, sessionTimeout);
-        }
+        // load up the initial page
+        loadAcsPage(acsUrl, pareq, md, termUrl);
     }
 
     private class SessionTimeoutTask implements Runnable {
         @Override
         public void run() {
             // callback with success=false
-            on3DSFailure();
+            on3DSTimedOut();
         }
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        on3DSFailure();
+        on3DSCancelled();
     }
 
     /**
@@ -142,6 +136,7 @@ public class ThreeDSActivity extends ActionBarActivity {
      */
     private void loadAcsPage(String acsUrl, String pareq, String md, String termUrl) {
 
+        // create POST request
         List<NameValuePair> params = new LinkedList<>();
         params.add(new BasicNameValuePair("PaReq", pareq));
         params.add(new BasicNameValuePair("MD", md));
@@ -152,20 +147,47 @@ public class ThreeDSActivity extends ActionBarActivity {
             UrlEncodedFormEntity form = new UrlEncodedFormEntity(params, "UTF-8");
             form.writeTo(encodedParams);
             webView.postUrl(acsUrl, encodedParams.toByteArray());
+
+            // start session timer
+            long sessionTimeout = getIntent().getLongExtra(EXTRA_SESSION_TIMEOUT, 0);
+
+            if (sessionTimeout > 0) {
+
+                // start a timer to wait for the term url
+                sessionTimerHandler = new Handler();
+
+                sessionTimeoutTask = new SessionTimeoutTask();
+
+                // callback when session timeout expired. Session timeout is in ms
+                sessionTimerHandler.postDelayed(sessionTimeoutTask, sessionTimeout);
+            }
         } catch (IOException e) {
             on3DSFailure();
         }
     }
 
     private void on3DSSuccess(String pares, String md) {
-        on3DSFinished(pares, md, true);
+        // ensure pares has been successfully captured
+        if (TextUtils.isEmpty(pares)) {
+            on3DSFailure();
+        } else {
+            on3DSFinished(pares, md, true, false, false);
+        }
+    }
+
+    private void on3DSTimedOut() {
+        on3DSFinished(null, null, false, true, false);
+    }
+
+    private void on3DSCancelled() {
+        on3DSFinished(null, null, false, false, true);
     }
 
     private void on3DSFailure() {
-        on3DSFinished(null, null, false);
+        on3DSFinished(null, null, false, false, false);
     }
 
-    private void on3DSFinished(String pares, String md, boolean success) {
+    private void on3DSFinished(String pares, String md, boolean success, boolean timeout, boolean cancelled) {
         // end of 3DS - broadcast event for PaymentManager to pick up
         Intent intent = new Intent(ACTION_COMPLETED);
 
@@ -175,6 +197,8 @@ public class ThreeDSActivity extends ActionBarActivity {
             intent.putExtra(EXTRA_TRANSACTION_ID, transactionId);
         }
 
+        intent.putExtra(EXTRA_HAS_TIMED_OUT, timeout);
+        intent.putExtra(EXTRA_CANCELLED, cancelled);
         intent.putExtra(EXTRA_SUCCESS, success);
 
         sendBroadcast(intent);
@@ -192,19 +216,36 @@ public class ThreeDSActivity extends ActionBarActivity {
         @Override
         public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
             // open target _blank links in WebView with external browser
-            WebView.HitTestResult result = view.getHitTestResult();
-            String data = result.getExtra();
+            WebView newWebView = new WebView(view.getContext());
 
-            if (!TextUtils.isEmpty(data)) {
-                Context context = view.getContext();
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(data));
-                context.startActivity(browserIntent);
-            }
-            return false;
+            WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+            transport.setWebView(newWebView);
+            resultMsg.sendToTarget();
+            return true;
         }
     }
 
     private class CustomWebViewClient extends WebViewClient {
+
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+
+            // check intent can be resolved
+            if (PackageUtils.isIntentAvailable(ThreeDSActivity.this, browserIntent)) {
+                startActivity(browserIntent);
+            }
+            return true;
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+
+            if (url.contains(termUrl)) {
+                // TODO could hide the webview at this point + potentially show something underneath??
+                webView.setVisibility(View.INVISIBLE);
+            }
+        }
 
         @Override
         public void onPageFinished(WebView view, String url) {
@@ -212,9 +253,9 @@ public class ThreeDSActivity extends ActionBarActivity {
             // TODO doesn't work if call loadUrl from onPageStarted
             if (url.contains(termUrl)) {
 
+                // TODO can we do this before the page renders?
                 // call JS to get back pares - get3DSData calls back into WebAppInterface.getData()
                 webView.loadUrl("javascript:get3DSData();");
-                webView.stopLoading();
             } else {
                 super.onPageFinished(view, url);
             }
@@ -228,8 +269,14 @@ public class ThreeDSActivity extends ActionBarActivity {
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            view.stopLoading();
-            on3DSFailure();
+            // check if accept self signed SSL certificates
+            if (allowSelfSignedCerts) {
+                handler.proceed();
+            } else {
+                // don't allow - close activity and return error to calling app
+                view.stopLoading();
+                on3DSFailure();
+            }
         }
     }
 
