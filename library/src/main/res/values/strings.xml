@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">PayPoint SDK</string>
-    <string name="activity_3ds_title">3D Secure</string>
+    <string name="activity_3ds_title">Cancel</string>
 </resources>
