@@ -213,16 +213,16 @@ public class ThreeDSActivity extends ActionBarActivity {
     }
 
     private class CustomWebChromeClient extends WebChromeClient {
-        @Override
-        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
-            // open target _blank links in WebView with external browser
-            WebView newWebView = new WebView(view.getContext());
-
-            WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-            transport.setWebView(newWebView);
-            resultMsg.sendToTarget();
-            return true;
-        }
+//        @Override
+//        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+//            // open target _blank links in WebView with external browser
+//            WebView newWebView = new WebView(view.getContext());
+//
+//            WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+//            transport.setWebView(newWebView);
+//            resultMsg.sendToTarget();
+//            return true;
+//        }
     }
 
     private class CustomWebViewClient extends WebViewClient {
