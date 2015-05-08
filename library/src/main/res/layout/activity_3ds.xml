@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:minHeight="?attr/actionBarSize"
         android:background="@android:color/white"
-        app:theme="@style/ToolBarStyleLib"/>
+        app:theme="@style/LibAppTheme"/>
 
     <WebView
         android:id="@+id/webView"
