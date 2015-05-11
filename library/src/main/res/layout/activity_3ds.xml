@@ -4,8 +4,10 @@
   -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootContainer"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:visibility="invisible">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -13,7 +15,8 @@
         android:layout_width="match_parent"
         android:minHeight="?attr/actionBarSize"
         android:background="@android:color/white"
-        app:theme="@style/PPAppTheme"/>
+        app:theme="@style/PPAppTheme"
+        />
 
     <WebView
         android:id="@+id/webView"

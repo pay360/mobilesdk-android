@@ -20,6 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -54,6 +55,7 @@ public class ThreeDSActivity extends ActionBarActivity {
     public static final String EXTRA_PAREQ                      = "com.paypoint.sdk.library.EXTRA_PAREQ";
     public static final String EXTRA_MD                         = "com.paypoint.sdk.library.EXTRA_MD";
     public static final String EXTRA_SESSION_TIMEOUT            = "com.paypoint.sdk.library.EXTRA_SESSION_TIMEOUT";
+    public static final String EXTRA_VISIBILITY_TIMEOUT         = "com.paypoint.sdk.library.EXTRA_VISIBILITY_TIMEOUT";
     public static final String EXTRA_PARES                      = "com.paypoint.sdk.library.EXTRA_PARES";
     public static final String EXTRA_TRANSACTION_ID             = "com.paypoint.sdk.library.EXTRA_TRANSACTION_ID";
     public static final String EXTRA_HAS_TIMED_OUT              = "com.paypoint.sdk.library.EXTRA_HAS_TIMED_OUT";
@@ -72,7 +74,10 @@ public class ThreeDSActivity extends ActionBarActivity {
     private String transactionId;
     private Handler sessionTimerHandler;
     private SessionTimeoutTask sessionTimeoutTask;
+    private Handler visibilityTimerHandler;
+    private VisibilityTimeoutTask visibilityTimeoutTask;
     private boolean finished;
+    private ViewGroup rootContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +97,8 @@ public class ThreeDSActivity extends ActionBarActivity {
                 onBackPressed();
             }
         });
+
+        rootContainer = (ViewGroup)findViewById(R.id.rootContainer);
 
         acsUrl = getIntent().getStringExtra(EXTRA_ACS_URL);
         termUrl = getIntent().getStringExtra(EXTRA_TERM_URL);
@@ -118,6 +125,14 @@ public class ThreeDSActivity extends ActionBarActivity {
         public void run() {
             // callback with success=false
             on3DSTimedOut();
+        }
+    }
+
+    private class VisibilityTimeoutTask implements Runnable {
+        @Override
+        public void run() {
+            // show root container
+            rootContainer.setVisibility(View.VISIBLE);
         }
     }
 
@@ -160,6 +175,19 @@ public class ThreeDSActivity extends ActionBarActivity {
 
                 // callback when session timeout expired. Session timeout is in ms
                 sessionTimerHandler.postDelayed(sessionTimeoutTask, sessionTimeout);
+            }
+
+            // start visibility timer - only make this activity visible if showing acs page
+            // after given number of seconds
+            long visibilityTimeout = getIntent().getLongExtra(EXTRA_VISIBILITY_TIMEOUT, 0);
+
+            if (visibilityTimeout > 0) {
+                // start a timer to wait for the term url
+                visibilityTimerHandler = new Handler();
+
+                visibilityTimeoutTask = new VisibilityTimeoutTask();
+
+                visibilityTimerHandler.postDelayed(visibilityTimeoutTask, visibilityTimeout);
             }
         } catch (IOException e) {
             on3DSFailure();
@@ -209,9 +237,13 @@ public class ThreeDSActivity extends ActionBarActivity {
 
             sendBroadcast(intent);
 
-            // clean up the timer if still running
+            // clean up the timers if still running
             if (sessionTimerHandler != null) {
                 sessionTimerHandler.removeCallbacks(sessionTimeoutTask);
+            }
+
+            if (visibilityTimerHandler != null) {
+                visibilityTimerHandler.removeCallbacks(visibilityTimeoutTask);
             }
 
             // close the activity
@@ -253,6 +285,11 @@ public class ThreeDSActivity extends ActionBarActivity {
             if (url.contains(termUrl)) {
                 // TODO could hide the webview at this point + potentially show something underneath??
                 webView.setVisibility(View.INVISIBLE);
+
+                // cancel the visibility timer
+                if (visibilityTimerHandler != null) {
+                    visibilityTimerHandler.removeCallbacks(visibilityTimeoutTask);
+                }
             }
         }
 
