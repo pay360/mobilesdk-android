@@ -72,6 +72,7 @@ public class ThreeDSActivity extends ActionBarActivity {
     private String transactionId;
     private Handler sessionTimerHandler;
     private SessionTimeoutTask sessionTimeoutTask;
+    private boolean finished;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +82,7 @@ public class ThreeDSActivity extends ActionBarActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(R.string.activity_3ds_title);
+        getSupportActionBar().setTitle(R.string.pp_activity_3ds_title);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
@@ -104,7 +105,6 @@ public class ThreeDSActivity extends ActionBarActivity {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.addJavascriptInterface(new WebAppInterface(), JAVASCRIPT_INTERFACE);
-//        webView.getSettings().setSupportMultipleWindows(true);
 
         webView.setWebViewClient(new CustomWebViewClient());
         webView.setWebChromeClient(new CustomWebChromeClient());
@@ -188,28 +188,37 @@ public class ThreeDSActivity extends ActionBarActivity {
     }
 
     private void on3DSFinished(String pares, String md, boolean success, boolean timeout, boolean cancelled) {
-        // end of 3DS - broadcast event for PaymentManager to pick up
-        Intent intent = new Intent(ACTION_COMPLETED);
 
-        if (success) {
-            intent.putExtra(EXTRA_PARES, pares);
-            intent.putExtra(EXTRA_MD, md);
-            intent.putExtra(EXTRA_TRANSACTION_ID, transactionId);
+        // need a boolean flag here just in case page runs JS function on a timer after this
+        // activity which fires after this activity has been finished. This flag avoids
+        // multiple callbacks
+
+        if (!finished) {
+            // end of 3DS - broadcast event for PaymentManager to pick up
+            Intent intent = new Intent(ACTION_COMPLETED);
+
+            if (success) {
+                intent.putExtra(EXTRA_PARES, pares);
+                intent.putExtra(EXTRA_MD, md);
+                intent.putExtra(EXTRA_TRANSACTION_ID, transactionId);
+            }
+
+            intent.putExtra(EXTRA_HAS_TIMED_OUT, timeout);
+            intent.putExtra(EXTRA_CANCELLED, cancelled);
+            intent.putExtra(EXTRA_SUCCESS, success);
+
+            sendBroadcast(intent);
+
+            // clean up the timer if still running
+            if (sessionTimerHandler != null) {
+                sessionTimerHandler.removeCallbacks(sessionTimeoutTask);
+            }
+
+            // close the activity
+            finish();
         }
 
-        intent.putExtra(EXTRA_HAS_TIMED_OUT, timeout);
-        intent.putExtra(EXTRA_CANCELLED, cancelled);
-        intent.putExtra(EXTRA_SUCCESS, success);
-
-        sendBroadcast(intent);
-
-        // clean up the timer if still running
-        if (sessionTimerHandler != null) {
-            sessionTimerHandler.removeCallbacks(sessionTimeoutTask);
-        }
-
-        // close the activity
-        finish();
+        finished = true;
     }
 
     private class CustomWebChromeClient extends WebChromeClient {
