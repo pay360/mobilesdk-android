@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">PayPoint SDK</string>
-    <string name="activity_3ds_title">3D Secure</string>
+    <!--Prefix all with 'pp_' to avoid conflicts-->
+    <string name="pp_app_name">PayPoint SDK</string>
+    <string name="pp_activity_3ds_title">3D Secure</string>
 </resources>
