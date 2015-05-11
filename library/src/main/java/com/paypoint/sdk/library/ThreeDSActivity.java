@@ -264,7 +264,7 @@ public class ThreeDSActivity extends ActionBarActivity {
 
                 // TODO can we do this before the page renders?
                 // call JS to get back pares - get3DSData calls back into WebAppInterface.getData()
-                webView.loadUrl("javascript:get3DSData();");
+                webView.loadUrl("javascript:androidGet3DSData();");
             } else {
                 super.onPageFinished(view, url);
             }
