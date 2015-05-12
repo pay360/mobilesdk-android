@@ -4,21 +4,15 @@
 
 package com.paypoint.sdk.library;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
@@ -27,7 +21,6 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.utils.PackageUtils;
 
 import org.apache.http.NameValuePair;
@@ -36,7 +29,6 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,7 +47,7 @@ public class ThreeDSActivity extends ActionBarActivity {
     public static final String EXTRA_PAREQ                      = "com.paypoint.sdk.library.EXTRA_PAREQ";
     public static final String EXTRA_MD                         = "com.paypoint.sdk.library.EXTRA_MD";
     public static final String EXTRA_SESSION_TIMEOUT            = "com.paypoint.sdk.library.EXTRA_SESSION_TIMEOUT";
-    public static final String EXTRA_VISIBILITY_TIMEOUT         = "com.paypoint.sdk.library.EXTRA_VISIBILITY_TIMEOUT";
+    public static final String EXTRA_REDIRECT_TIMEOUT           = "com.paypoint.sdk.library.EXTRA_REDIRECT_TIMEOUT";
     public static final String EXTRA_PARES                      = "com.paypoint.sdk.library.EXTRA_PARES";
     public static final String EXTRA_TRANSACTION_ID             = "com.paypoint.sdk.library.EXTRA_TRANSACTION_ID";
     public static final String EXTRA_HAS_TIMED_OUT              = "com.paypoint.sdk.library.EXTRA_HAS_TIMED_OUT";
@@ -74,8 +66,8 @@ public class ThreeDSActivity extends ActionBarActivity {
     private String transactionId;
     private Handler sessionTimerHandler;
     private SessionTimeoutTask sessionTimeoutTask;
-    private Handler visibilityTimerHandler;
-    private VisibilityTimeoutTask visibilityTimeoutTask;
+    private Handler redirectTimerHandler;
+    private RedirectTimeoutTask redirectTimeoutTask;
     private boolean finished;
     private ViewGroup rootContainer;
 
@@ -128,7 +120,7 @@ public class ThreeDSActivity extends ActionBarActivity {
         }
     }
 
-    private class VisibilityTimeoutTask implements Runnable {
+    private class RedirectTimeoutTask implements Runnable {
         @Override
         public void run() {
             // show root container
@@ -177,17 +169,20 @@ public class ThreeDSActivity extends ActionBarActivity {
                 sessionTimerHandler.postDelayed(sessionTimeoutTask, sessionTimeout);
             }
 
-            // start visibility timer - only make this activity visible if showing acs page
+            // start redirect timer - only make this activity visible if showing acs page
             // after given number of seconds
-            long visibilityTimeout = getIntent().getLongExtra(EXTRA_VISIBILITY_TIMEOUT, 0);
+            long directTimeout = getIntent().getLongExtra(EXTRA_REDIRECT_TIMEOUT, 0);
 
-            if (visibilityTimeout > 0) {
+            if (directTimeout > 0) {
                 // start a timer to wait for the term url
-                visibilityTimerHandler = new Handler();
+                redirectTimerHandler = new Handler();
 
-                visibilityTimeoutTask = new VisibilityTimeoutTask();
+                redirectTimeoutTask = new RedirectTimeoutTask();
 
-                visibilityTimerHandler.postDelayed(visibilityTimeoutTask, visibilityTimeout);
+                redirectTimerHandler.postDelayed(redirectTimeoutTask, directTimeout);
+            } else {
+                // no redirect, show webview
+                rootContainer.setVisibility(View.VISIBLE);
             }
         } catch (IOException e) {
             on3DSFailure();
@@ -242,8 +237,8 @@ public class ThreeDSActivity extends ActionBarActivity {
                 sessionTimerHandler.removeCallbacks(sessionTimeoutTask);
             }
 
-            if (visibilityTimerHandler != null) {
-                visibilityTimerHandler.removeCallbacks(visibilityTimeoutTask);
+            if (redirectTimerHandler != null) {
+                redirectTimerHandler.removeCallbacks(redirectTimeoutTask);
             }
 
             // close the activity
@@ -286,9 +281,9 @@ public class ThreeDSActivity extends ActionBarActivity {
                 // TODO could hide the webview at this point + potentially show something underneath??
                 webView.setVisibility(View.INVISIBLE);
 
-                // cancel the visibility timer
-                if (visibilityTimerHandler != null) {
-                    visibilityTimerHandler.removeCallbacks(visibilityTimeoutTask);
+                // cancel the redirect timer
+                if (redirectTimerHandler != null) {
+                    redirectTimerHandler.removeCallbacks(redirectTimeoutTask);
                 }
             }
         }

@@ -310,7 +310,7 @@ public class PaymentManager {
                     intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, paymentResponse.getTransactionId());
                     intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, threeDSecure.getSessionTimeout());
                     intent.putExtra(ThreeDSActivity.EXTRA_ALLOW_SELF_SIGNED_CERTS, isCustomUrl);
-                    intent.putExtra(ThreeDSActivity.EXTRA_VISIBILITY_TIMEOUT, 6000L); // TODO get server to send this back
+                    intent.putExtra(ThreeDSActivity.EXTRA_REDIRECT_TIMEOUT, threeDSecure.getRedirectTimeout());
 
                     // required as starting the activity from an application context
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

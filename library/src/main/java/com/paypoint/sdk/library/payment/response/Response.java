@@ -247,6 +247,9 @@ public class Response {
         @SerializedName("sessionTimeout")
         private long sessionTimeout;
 
+        @SerializedName("redirectTimeout")
+        private long redirectTimeout;
+
         public String getAcsUrl() {
             return acsUrl;
         }
@@ -265,6 +268,10 @@ public class Response {
 
         public long getSessionTimeout() {
             return sessionTimeout;
+        }
+
+        public long getRedirectTimeout() {
+            return redirectTimeout;
         }
 
         public boolean validateData() {
