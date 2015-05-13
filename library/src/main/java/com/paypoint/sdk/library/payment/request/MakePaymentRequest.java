@@ -6,11 +6,6 @@ package com.paypoint.sdk.library.payment.request;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Who:  Pete
- * When: 09/04/2015
- * What:
- */
 public class MakePaymentRequest {
 
     @SerializedName("transaction")

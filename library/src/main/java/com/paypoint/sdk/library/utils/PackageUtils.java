@@ -11,11 +11,6 @@ import android.content.pm.ResolveInfo;
 
 import java.util.List;
 
-/**
- * Who:  Pete
- * When: 07/05/2015
- * What:
- */
 public class PackageUtils {
 
     /** Return true if intent can be resolved

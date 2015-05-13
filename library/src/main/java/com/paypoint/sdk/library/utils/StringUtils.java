@@ -5,9 +5,7 @@
 package com.paypoint.sdk.library.utils;
 
 /**
- * Who:  Pete
- * When: 15/04/2015
- * What: String utility functions
+ * String utility functions
  */
 public class StringUtils {
 

@@ -6,11 +6,6 @@ package com.paypoint.sdk.library.payment.request;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Who:  Pete
- * When: 05/05/2015
- * What:
- */
 public class ThreeDSResumeRequest {
 
     public ThreeDSResumeRequest(String pares) {

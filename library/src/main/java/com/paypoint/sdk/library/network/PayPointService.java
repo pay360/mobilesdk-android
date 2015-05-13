@@ -16,9 +16,7 @@ import retrofit.http.POST;
 import retrofit.http.Path;
 
 /**
- * Who:  Pete
- * When: 20/04/2015
- * What: PayPoint Retrofit REST service
+ * PayPoint Retrofit REST service
  */
 public interface PayPointService {
 

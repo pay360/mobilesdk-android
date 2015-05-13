@@ -5,9 +5,7 @@
 package com.paypoint.sdk.library.payment;
 
 /**
- * Who:  Pete
- * When: 09/04/2015
- * What:
+ * Error from payment request
  */
 public class PaymentError {
 
@@ -17,17 +15,61 @@ public class PaymentError {
     }
 
     public enum ReasonCode {
-        TRANSACTION_CANCELLED(-4),          // Transaction cancelled by user
-        THREE_D_SECURE_TIMEOUT(-3),         // Timeout waiting for 3D Secure
-        THREE_D_SECURE_ERROR(-2),           // Error occurred processing 3D Secure
+
+        /**
+         * Transaction cancelled by user
+         */
+        TRANSACTION_CANCELLED(-4),
+
+        /**
+         * Timeout waiting for 3D Secure
+         */
+        THREE_D_SECURE_TIMEOUT(-3),
+
+        /**
+         * Error processing 3D Secure
+         */
+        THREE_D_SECURE_ERROR(-2),
+
+        /**
+         * Unknown error
+         */
         UNKNOWN(-1),
-        SUCCESS(0),                         // Operation successful as described
-        INVALID(1),                         // Request was not correctly formed
-        AUTHENTICATION_FAILED(2),           // The presented API token was not valid, or the wrong type of authentication was used
-        CLIENT_TOKEN_EXPIRED(3),            // Get a new token
-        UNAUTHORISED_REQUEST(4),            // The token was valid, but does not grant you access to use the specified feature
-        TRANSACTION_FAILED_TO_PROCESS(5),   // The transaction was successfully submitted but failed to be processed correctly.
-        SERVER_ERROR(6);                    // An internal server error occurred at paypoint
+
+        /**
+         * Operation successful as described
+         */
+        SUCCESS(0),
+
+        /**
+         * Request was not correctly formed
+         */
+        INVALID(1),
+
+        /**
+         * The presented API token was not valid, or the wrong type of authentication was used
+         */
+        AUTHENTICATION_FAILED(2),
+
+        /**
+         * Get a new token
+         */
+        CLIENT_TOKEN_EXPIRED(3),
+
+        /**
+         * The token was valid, but does not grant you access to use the specified feature
+         */
+        UNAUTHORISED_REQUEST(4),
+
+        /**
+         * The transaction was successfully submitted but failed to be processed correctly
+         */
+        TRANSACTION_FAILED_TO_PROCESS(5),
+
+        /**
+         * An internal server error occurred at PayPoint
+         */
+        SERVER_ERROR(6);
 
         int code;
 

@@ -6,9 +6,6 @@ package com.paypoint.sdk.library.network;
 
 /**
  * Manager for getting endpoints for different PayPoint environments
- * Who:  Pete
- * When: 20/04/2015
- * What:
  */
 public class EndpointManager {
 

@@ -4,11 +4,6 @@
 
 package com.paypoint.sdk;
 
-/**
- * Who:  Pete
- * When: 23/04/2015
- * What:
- */
 import org.junit.runners.model.InitializationError;
 import org.robolectric.AndroidManifest;
 import org.robolectric.RobolectricTestRunner;

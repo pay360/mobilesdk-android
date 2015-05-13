@@ -10,9 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Who:  Pete
- * When: 15/04/2015
- * What: Expiry date utility functions
+ * Expiry date utility functions
  */
 public class ExpiryUtils {
 

@@ -10,9 +10,7 @@ import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 
 /**
- * Who:  Pete
- * When: 13/04/2015
- * What:
+ * Models a payment request
  */
 public class PaymentRequest {
 

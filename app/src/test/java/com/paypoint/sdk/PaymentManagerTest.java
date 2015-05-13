@@ -27,11 +27,6 @@ import java.util.concurrent.TimeUnit;
 import static com.jayway.awaitility.Awaitility.*;
 import static com.jayway.awaitility.Awaitility.await;
 
-/**
- * Who:  Pete
- * When: 09/04/2015
- * What:
- */
 @RunWith(CustomRobolectricRunner.class)
 @Config(emulateSdk = 18, reportSdk = 18)
 public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {

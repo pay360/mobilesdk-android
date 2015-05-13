@@ -43,9 +43,7 @@ import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
 
 /**
- * Who:  Pete
- * When: 20/04/2015
- * What: Manager for handling payment requests
+ * Manager for handling payment requests
  */
 public class PaymentManager {
 

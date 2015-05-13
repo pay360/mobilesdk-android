@@ -29,11 +29,6 @@ import java.util.concurrent.TimeUnit;
 import static com.jayway.awaitility.Awaitility.*;
 import static com.jayway.awaitility.Awaitility.await;
 
-/**
- * Who:  Pete
- * When: 08/05/2015
- * What:
- */
 public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeDSActivity> {
 
     private ThreeDSActivity activity;

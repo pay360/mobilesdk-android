@@ -11,11 +11,6 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-/**
- * Who:  Pete
- * When: 28/04/2015
- * What:
- */
 public class EndpointManagerTest extends TestCase {
 
     @Test

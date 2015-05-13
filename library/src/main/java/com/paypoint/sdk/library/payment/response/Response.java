@@ -4,11 +4,6 @@ import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Who:  Pete
- * When: 09/04/2015
- * What:
- */
 public class Response {
 
     private static final int REASON_CODE_UNKNOWN = -1;

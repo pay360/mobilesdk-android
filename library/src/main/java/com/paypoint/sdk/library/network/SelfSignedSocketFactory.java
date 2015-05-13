@@ -14,9 +14,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 /**
- * Who:  Pete
- * When: 27/04/2015
- * What: Socket Factory for accepting self signed SSL certificates
+ * Socket Factory for accepting self signed SSL certificates
  */
 public class SelfSignedSocketFactory {
 

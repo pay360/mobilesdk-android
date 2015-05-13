@@ -33,9 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Who:  Pete
- * When: 30/04/2015
- * What: Activity for handling 3D Secure interaction
+ * Activity for handling 3D Secure interaction
  */
 public class ThreeDSActivity extends ActionBarActivity {
 
@@ -106,7 +104,6 @@ public class ThreeDSActivity extends ActionBarActivity {
         webView.addJavascriptInterface(new WebAppInterface(), JAVASCRIPT_INTERFACE);
 
         webView.setWebViewClient(new CustomWebViewClient());
-        webView.setWebChromeClient(new CustomWebChromeClient());
 
         // load up the initial page
         loadAcsPage(acsUrl, pareq, md, termUrl);
@@ -248,19 +245,6 @@ public class ThreeDSActivity extends ActionBarActivity {
         finished = true;
     }
 
-    private class CustomWebChromeClient extends WebChromeClient {
-//        @Override
-//        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
-//            // open target _blank links in WebView with external browser
-//            WebView newWebView = new WebView(view.getContext());
-//
-//            WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-//            transport.setWebView(newWebView);
-//            resultMsg.sendToTarget();
-//            return true;
-//        }
-    }
-
     private class CustomWebViewClient extends WebViewClient {
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -279,7 +263,7 @@ public class ThreeDSActivity extends ActionBarActivity {
 
             if (url.contains(termUrl)) {
                 // TODO could hide the webview at this point + potentially show something underneath??
-                webView.setVisibility(View.INVISIBLE);
+                rootContainer.setVisibility(View.INVISIBLE);
 
                 // cancel the redirect timer
                 if (redirectTimerHandler != null) {
@@ -322,7 +306,7 @@ public class ThreeDSActivity extends ActionBarActivity {
     }
 
     /**
-     * JavaScript -> Android binding
+     * JavaScript to Android binding
      */
     public class WebAppInterface {
 

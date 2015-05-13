@@ -7,9 +7,7 @@ package com.paypoint.sdk.library.payment;
 import java.io.Serializable;
 
 /**
- * Who:  Pete
- * When: 09/04/2015
- * What:
+ * Payment success data from the sever
  */
 public class PaymentSuccess implements Serializable {
 
