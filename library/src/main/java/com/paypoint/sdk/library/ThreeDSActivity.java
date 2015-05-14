@@ -54,6 +54,8 @@ public class ThreeDSActivity extends ActionBarActivity {
 
     private static final String JAVASCRIPT_INTERFACE = "paypoint";
 
+    private static final long TIMEOUT_JAVASCRIPT = 5000;
+
     private WebView webView;
 
     private String acsUrl;
@@ -66,6 +68,8 @@ public class ThreeDSActivity extends ActionBarActivity {
     private SessionTimeoutTask sessionTimeoutTask;
     private Handler redirectTimerHandler;
     private RedirectTimeoutTask redirectTimeoutTask;
+    private Handler javascriptTimerHandler;
+    private JavascriptTimeoutTask javascriptTimeoutTask;
     private boolean finished;
     private ViewGroup rootContainer;
 
@@ -122,6 +126,13 @@ public class ThreeDSActivity extends ActionBarActivity {
         public void run() {
             // show root container
             rootContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private class JavascriptTimeoutTask implements Runnable {
+        @Override
+        public void run() {
+           on3DSFailure();
         }
     }
 
@@ -238,6 +249,10 @@ public class ThreeDSActivity extends ActionBarActivity {
                 redirectTimerHandler.removeCallbacks(redirectTimeoutTask);
             }
 
+            if (javascriptTimerHandler != null) {
+                javascriptTimerHandler.removeCallbacks(javascriptTimeoutTask);
+            }
+
             // close the activity
             finish();
         }
@@ -262,7 +277,6 @@ public class ThreeDSActivity extends ActionBarActivity {
             super.onPageStarted(view, url, favicon);
 
             if (url.contains(termUrl)) {
-                // TODO could hide the webview at this point + potentially show something underneath??
                 rootContainer.setVisibility(View.INVISIBLE);
 
                 // cancel the redirect timer
@@ -274,13 +288,16 @@ public class ThreeDSActivity extends ActionBarActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            // TODO any way to stop this page showing but still being able to call loadUrl?
-            // TODO doesn't work if call loadUrl from onPageStarted
             if (url.contains(termUrl)) {
+                // start a timer to check Javascript evaluated
+                javascriptTimerHandler = new Handler();
 
-                // TODO can we do this before the page renders?
+                javascriptTimeoutTask = new JavascriptTimeoutTask();
+
+                javascriptTimerHandler.postDelayed(javascriptTimeoutTask, TIMEOUT_JAVASCRIPT);
+
                 // call JS to get back pares - get3DSData calls back into WebAppInterface.getData()
-                webView.loadUrl("javascript:androidGet3DSData();");
+                webView.loadUrl("javascript:get3DSData();");
             } else {
                 super.onPageFinished(view, url);
             }
@@ -312,6 +329,12 @@ public class ThreeDSActivity extends ActionBarActivity {
 
         @JavascriptInterface
         public void getData(String pares, String md) {
+
+            // stop timer
+            if (javascriptTimerHandler != null) {
+                javascriptTimerHandler.removeCallbacks(javascriptTimeoutTask);
+            }
+
             on3DSSuccess(pares, md);
         }
     }
