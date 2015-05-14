@@ -10,7 +10,15 @@ package com.paypoint.sdk.library.network;
 public class EndpointManager {
 
     public enum Environment {
+
+        /**
+         * PayPoint Mite environment
+         */
         MITE("https://api.mite.paypoint.net:2443"),
+
+        /**
+         * PayPoint Production environment
+         */
         PRODUCTION("https://api.paypoint.net");
 
         String url;
@@ -20,14 +28,17 @@ public class EndpointManager {
         }
     }
 
+    /**
+     * Get the endpoint URL for given PayPoint environment
+     * @param environment The PayPoint environment
+     * @return Endpoint URL
+     */
     public static String getEndpointUrl(Environment environment) {
         return environment.url;
     }
 
     /**
      * Checks if URL matches a PayPoint environment URL
-     * @param url
-     * @return
      */
     public static boolean isPayPointUrl(String url) {
         for (Environment environment :Environment.values()) {
