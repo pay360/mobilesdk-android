@@ -39,9 +39,8 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         super(ThreeDSActivity.class);
     }
 
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
+    public void before(String pareq, long sessionTimeout) throws Exception {
+
         injectInstrumentation(InstrumentationRegistry.getInstrumentation());
 
         // this sets up a fast redirect where the ACS page returns the term URL after a few
@@ -49,18 +48,22 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         Intent intent = new Intent(getInstrumentation().getContext(), ThreeDSActivity.class);
         intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, "http://192.168.3.242:5000/acs/auth");
         intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, "http://192.168.3.242:5000/landingpage/");
-        intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, "VALID_PAREQ_FAST_REDIR");
-        intent.putExtra(ThreeDSActivity.EXTRA_MD, "7897162297");
-        intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, "7897162297");
-        intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, 3600000);
+        intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, pareq);
+        intent.putExtra(ThreeDSActivity.EXTRA_MD, "7897162297"); intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, "7897162297");
+        intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, sessionTimeout);
         intent.putExtra(ThreeDSActivity.EXTRA_ALLOW_SELF_SIGNED_CERTS, true);
         setActivityIntent(intent);
 
         activity = getActivity();
     }
 
+    /**
+     * Test 3DS fast redirect
+     */
     @Test
-    public void test3DSSuccess() {
+    public void test3DFastRedirect() throws Exception {
+
+        before("VALID_PAREQ_FAST_REDIR", 3600000);
 
         // register to receive event from 3DS activity
         activity.registerReceiver(new ThreeDSecureReceiver(),
@@ -75,20 +78,47 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         Assert.assertTrue(success);
     }
 
+    /**
+     * Test 3DS page showing on enter PIN, should timeout
+     */
     @Test
-    public void test3DSTimeout() {
+    public void test3DSEnterPin() throws Exception {
+
+        before("eJxVUttuwjAMfd9XVHxAk/RCAZmgQtHGAxuiPGyPURqNSvRC2q6wr59TWhhRIvnYybF9HFhcspP1o3SVFvl8xGw6WvAXOBy1UlGsZKMVh62qKvGtrDSZj+iwmONQ5lIWeOMRh124V2cOPRFHHtsBMkBk0PIo8pqDkOfl5p1PGfUoBdJDyJTeRNwLAsdx/QDIDUMuMsXdKLYGAmu1X0cf+/DTitdAujDIoslrfeUTZwxkANDoEz/WdTkjpG1bO+sJ0G3LIgNi4kAehe0aY1XId0kTvo3C9n4Om+s2Wv/icd+jrzkQcwMSUSuOGnjUZROLTme4/QmQzg8iM4Vw1mmFfd4glCZL+Bz77wNUXKtcXvnrcofdDAjUpSxyhTdQ1rsNiaokj0VWnpR10CKvhKxRcCzCBIA8mlq9Ge1ljaretMcB3gbpM3dqBtHFTJ4U5WM+ZV0iA4CY16SfMem/A1pP3+QPIfS8/w==", 3600000);
 
         // register to receive event from 3DS activity
         activity.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
-        // wait for 1 second for thread to come unblocked
+        // wait for 10 seconds for thread to become unblocked
         try {
-            await().atMost(1, TimeUnit.SECONDS).until(responseReceived());
+            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            // should timeout
+            Assert.assertTrue(true);
+        }
+        Assert.assertFalse(responseReceived);
+    }
+
+    /**
+     * Test 3DS showing on enter PIN but with short session timeout so expecting to come back within 10s window
+     */
+    @Test
+    public void test3DSSessionTimeout() throws Exception {
+
+        before("eJxVUttuwjAMfd9XVHxAk/RCAZmgQtHGAxuiPGyPURqNSvRC2q6wr59TWhhRIvnYybF9HFhcspP1o3SVFvl8xGw6WvAXOBy1UlGsZKMVh62qKvGtrDSZj+iwmONQ5lIWeOMRh124V2cOPRFHHtsBMkBk0PIo8pqDkOfl5p1PGfUoBdJDyJTeRNwLAsdx/QDIDUMuMsXdKLYGAmu1X0cf+/DTitdAujDIoslrfeUTZwxkANDoEz/WdTkjpG1bO+sJ0G3LIgNi4kAehe0aY1XId0kTvo3C9n4Om+s2Wv/icd+jrzkQcwMSUSuOGnjUZROLTme4/QmQzg8iM4Vw1mmFfd4glCZL+Bz77wNUXKtcXvnrcofdDAjUpSxyhTdQ1rsNiaokj0VWnpR10CKvhKxRcCzCBIA8mlq9Ge1ljaretMcB3gbpM3dqBtHFTJ4U5WM+ZV0iA4CY16SfMem/A1pP3+QPIfS8/w==", 5000);
+
+        // register to receive event from 3DS activity
+        activity.registerReceiver(new ThreeDSecureReceiver(),
+                new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
+
+        // wait for 10 seconds for thread to become unblocked
+        try {
+            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
         } catch (Throwable e) {
             // swallow
         }
-        Assert.assertFalse(success);
+        Assert.assertTrue(responseReceived);
     }
 
     private Callable<Boolean> responseReceived() {
