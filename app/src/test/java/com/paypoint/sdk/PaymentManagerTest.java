@@ -470,6 +470,15 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         }
     }
 
+    @Test
+    public void testDeferredPayment() throws Exception {
+        transaction.setDeferred(true);
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
     private void makePayment() throws Exception {
         success = false;
 

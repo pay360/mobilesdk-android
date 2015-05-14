@@ -5,6 +5,8 @@
 package com.paypoint.sdk.library.payment;
 
 import com.paypoint.sdk.library.payment.request.BillingAddress;
+import com.paypoint.sdk.library.payment.request.CustomerDetails;
+import com.paypoint.sdk.library.payment.request.FinancialServices;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
@@ -19,6 +21,10 @@ public class PaymentRequest {
     private PaymentCard card;
 
     private BillingAddress address;
+
+    private FinancialServices financialServices;
+
+    private CustomerDetails customer;
 
     public Transaction getTransaction() {
         return transaction;
@@ -44,6 +50,24 @@ public class PaymentRequest {
 
     public PaymentRequest setAddress(BillingAddress address) {
         this.address = address;
+        return this;
+    }
+
+    public FinancialServices getFinancialServices() {
+        return financialServices;
+    }
+
+    public PaymentRequest setFinancialServices(FinancialServices financialServices) {
+        this.financialServices = financialServices;
+        return this;
+    }
+
+    public CustomerDetails getCustomer() {
+        return customer;
+    }
+
+    public PaymentRequest setCustomer(CustomerDetails customer) {
+        this.customer = customer;
         return this;
     }
 }

@@ -176,7 +176,7 @@ public class PaymentManager {
         }
     }
 
-    public void makePayment(final com.paypoint.sdk.library.payment.PaymentRequest request)
+    public void makePayment(final PaymentRequest request)
             throws PaymentValidationException {
 
         // ensure last payment is forgotten
@@ -208,9 +208,12 @@ public class PaymentManager {
         }
 
         // call REST endpoint
-        MakePaymentRequest jsonRequest = new MakePaymentRequest().setTransaction(request.getTransaction())
+        MakePaymentRequest jsonRequest = new MakePaymentRequest()
+                .setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
-                        .setBillingAddress(request.getAddress()));
+                    .setBillingAddress(request.getAddress()))
+                .setFinancialServices(request.getFinancialServices())
+                .setCustomer(request.getCustomer());
 
         PayPointService service = null;
 
