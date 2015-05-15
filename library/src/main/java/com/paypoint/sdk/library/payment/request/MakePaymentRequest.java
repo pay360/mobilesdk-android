@@ -8,6 +8,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class MakePaymentRequest {
 
+    @SerializedName("sdkVersion")
+    private String sdkVersion;
+
     @SerializedName("deviceInfo")
     private DeviceInfo deviceInfo;
 
@@ -22,6 +25,11 @@ public class MakePaymentRequest {
 
     @SerializedName("paymentMethod")
     private PaymentMethod paymentMethod;
+
+    public MakePaymentRequest setSdkVersion(String sdkVersion) {
+        this.sdkVersion = sdkVersion;
+        return this;
+    }
 
     public MakePaymentRequest setDeviceInfo(DeviceInfo deviceInfo) {
         this.deviceInfo = deviceInfo;

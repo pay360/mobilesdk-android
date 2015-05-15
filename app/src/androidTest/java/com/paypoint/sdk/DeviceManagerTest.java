@@ -38,6 +38,13 @@ public class DeviceManagerTest extends ApplicationTestCase<Application> {
     }
 
     @Test
+    public void testSdkVersion() {
+        // test sdk installation id same if called multiple times
+        String sdkVersion = deviceManager.getSdkVersion();
+        Assert.assertNotNull(sdkVersion);
+    }
+
+    @Test
     public void testSdkInstallationId() {
         // test sdk installation id same if called multiple times
         String sdkInstallId1 = deviceManager.getSdkInstallId();

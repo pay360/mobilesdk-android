@@ -8,8 +8,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.DisplayMetrics;
-import android.view.WindowManager;
 
+import com.paypoint.sdk.library.BuildConfig;
 import com.paypoint.sdk.library.R;
 
 import java.util.UUID;
@@ -31,6 +31,10 @@ public class DeviceManager {
 
     public DeviceManager(Context context) {
         this.context = context;
+    }
+
+    public String getSdkVersion() {
+        return BuildConfig.VERSION_NAME;
     }
 
     public String getSdkInstallId() {
