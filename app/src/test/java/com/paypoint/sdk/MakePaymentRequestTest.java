@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import com.google.gson.Gson;
 import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.request.CustomerDetails;
+import com.paypoint.sdk.library.payment.request.DeviceInfo;
 import com.paypoint.sdk.library.payment.request.FinancialServices;
 import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
 
@@ -70,6 +71,35 @@ public class MakePaymentRequestTest  {
         String json = gson.toJson(request).replace("\n", "").replace("\r", "").replace(" ", "");
 
         String expected =  readRawFile(R.raw.customer_details_json).replace("\n", "").replace("\r", "").replace(" ", "");
+
+        // check JSON contains the correct financial services element
+        Assert.assertTrue(expected.contains(json));
+    }
+
+    /**
+     * Checks the correct JSON is generated for DeviceInfo block
+     * @throws Exception
+     */
+    @Test
+    public void testDeviceInfo() throws Exception {
+        MakePaymentRequest request = new MakePaymentRequest();
+
+        request.setDeviceInfo(new DeviceInfo()
+                .setSdkInstallId("067e6162-3b6f-4ae2-a171-2470b63dff00")
+                .setOsFamily("Android")
+                .setOsName("Android 5.2")
+                .setManufacturer("Samsung")
+                .setModelFamily("Android")
+                .setModelName("Nexus 7")
+                .setType("SMARTPHONE")
+                .setScreenRes("1200x600")
+                .setScreenDpi(160));
+
+        Gson gson = new Gson();
+
+        String json = gson.toJson(request).replace("\n", "").replace("\r", "").replace(" ", "");
+
+        String expected =  readRawFile(R.raw.device_info_json).replace("\n", "").replace("\r", "").replace(" ", "");
 
         // check JSON contains the correct financial services element
         Assert.assertTrue(expected.contains(json));

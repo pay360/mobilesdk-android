@@ -1,0 +1,13 @@
+{
+    "deviceInfo" : {
+       "sdkInstallId" : "067e6162-3b6f-4ae2-a171-2470b63dff00",
+       "osFamily" : "Android",
+       "osName" : "Android 5.2" ,
+       "modelFamily" : "Android",
+       "modelName" : "Nexus 7",
+       "manufacturer" : "Samsung",
+       "type" : "SMARTPHONE",
+       "screenRes" : "1200x600",
+       "screenDpi" : 160
+     }
+}
