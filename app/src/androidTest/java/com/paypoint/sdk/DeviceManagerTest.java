@@ -38,6 +38,14 @@ public class DeviceManagerTest extends ApplicationTestCase<Application> {
     }
 
     @Test
+    public void testSdkInstallationId() {
+        // test sdk installation id same if called multiple times
+        String sdkInstallId1 = deviceManager.getSdkInstallId();
+        String sdkInstallId2 = deviceManager.getSdkInstallId();
+        Assert.assertEquals(sdkInstallId1, sdkInstallId2);
+    }
+
+    @Test
     public void testGetOsFamily() {
         String osFamily = deviceManager.getOsFamily();
         Assert.assertEquals("ANDROID", osFamily);
