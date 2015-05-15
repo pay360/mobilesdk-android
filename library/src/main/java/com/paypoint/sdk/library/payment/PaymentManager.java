@@ -13,13 +13,14 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.ThreeDSActivity;
+import com.paypoint.sdk.library.device.DeviceManager;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
-import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
 import com.paypoint.sdk.library.network.SelfSignedSocketFactory;
+import com.paypoint.sdk.library.payment.request.DeviceInfo;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
 import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
@@ -37,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
-import retrofit.android.AndroidLog;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
@@ -68,6 +68,8 @@ public class PaymentManager {
     private boolean callbackLocked = false;
     private CallbackPending callbackPending;
     private boolean isCustomUrl;
+    private DeviceManager deviceManager;
+    private DeviceInfo deviceInfo;
 
     private static PaymentManager instance;
 
@@ -91,11 +93,17 @@ public class PaymentManager {
     }
 
     private PaymentManager(Context context) {
+        // use the application context - DO NOT HOLD ONTO AN ACTIVITY CONTEXT as PaymentManager
+        // is a singleton an may\will outlast the activity leading to memory leaks
         this.context = context.getApplicationContext();
 
         // register to receive events from 3DS activity
         this.context.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
+
+        deviceManager = new DeviceManager(this.context);
+        deviceInfo = new DeviceInfo()
+                .setSdkInstallId(deviceManager.getSdkInstallId());
     }
 
     private PayPointService getService(String serverUrl, int responseTimeoutSeconds)
@@ -209,6 +217,7 @@ public class PaymentManager {
 
         // call REST endpoint
         MakePaymentRequest jsonRequest = new MakePaymentRequest()
+                .setDeviceInfo(deviceInfo)
                 .setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
                     .setBillingAddress(request.getAddress()))

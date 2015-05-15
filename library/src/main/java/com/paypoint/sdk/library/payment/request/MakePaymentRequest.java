@@ -8,6 +8,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class MakePaymentRequest {
 
+    @SerializedName("deviceInfo")
+    private DeviceInfo deviceInfo;
+
     @SerializedName("transaction")
     private Transaction transaction;
 
@@ -19,6 +22,11 @@ public class MakePaymentRequest {
 
     @SerializedName("paymentMethod")
     private PaymentMethod paymentMethod;
+
+    public MakePaymentRequest setDeviceInfo(DeviceInfo deviceInfo) {
+        this.deviceInfo = deviceInfo;
+        return this;
+    }
 
     public MakePaymentRequest setTransaction(Transaction transaction) {
         this.transaction = transaction;
