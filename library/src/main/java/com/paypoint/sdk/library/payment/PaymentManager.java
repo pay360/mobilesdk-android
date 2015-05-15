@@ -103,7 +103,15 @@ public class PaymentManager {
 
         deviceManager = new DeviceManager(this.context);
         deviceInfo = new DeviceInfo()
-                .setSdkInstallId(deviceManager.getSdkInstallId());
+                .setSdkInstallId(deviceManager.getSdkInstallId())
+                .setOsFamily(deviceManager.getOsFamily())
+                .setOsName(deviceManager.getOsName())
+                .setManufacturer(deviceManager.getManufacturer())
+                .setModelFamily(deviceManager.getModelFamily())
+                .setModelName(deviceManager.getModelName())
+                .setType(deviceManager.getType())
+                .setScreenRes(deviceManager.getScreenRes())
+                .setScreenDpi(deviceManager.getScreenDpi());
     }
 
     private PayPointService getService(String serverUrl, int responseTimeoutSeconds)

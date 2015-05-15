@@ -17,6 +17,9 @@ public class DeviceInfo {
     @SerializedName("osName")
     private String osName;
 
+    @SerializedName("modelFamily")
+    private String modelFamily;
+
     @SerializedName("modelName")
     private String modelName;
 
@@ -26,13 +29,11 @@ public class DeviceInfo {
     @SerializedName("type")
     private String type;
 
-
     @SerializedName("screenRes")
     private String screenRes;
 
-
     @SerializedName("screenDpi")
-    private String screenDpi;
+    private int screenDpi;
 
 
     public DeviceInfo setSdkInstallId(String sdkInstallId) {
@@ -55,6 +56,11 @@ public class DeviceInfo {
         return this;
     }
 
+    public DeviceInfo setModelFamily(String modelFamily) {
+        this.modelFamily = modelFamily;
+        return this;
+    }
+
     public DeviceInfo setManufacturer(String manufacturer) {
         this.manufacturer = manufacturer;
         return this;
@@ -70,7 +76,7 @@ public class DeviceInfo {
         return this;
     }
 
-    public DeviceInfo setScreenDpi(String screenDpi) {
+    public DeviceInfo setScreenDpi(int screenDpi) {
         this.screenDpi = screenDpi;
         return this;
     }
