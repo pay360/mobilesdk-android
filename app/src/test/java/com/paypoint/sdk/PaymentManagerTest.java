@@ -6,6 +6,8 @@ import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
 import com.paypoint.sdk.library.payment.PaymentSuccess;
 import com.paypoint.sdk.library.payment.request.BillingAddress;
+import com.paypoint.sdk.library.payment.request.CustomerDetails;
+import com.paypoint.sdk.library.payment.request.FinancialServices;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
@@ -39,7 +41,6 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private PaymentManager pm;
     private Transaction transaction;
     private PaymentCard card;
-    private BillingAddress address;
     private PayPointCredentials credentials;
     private int responseTimeout;
     private PaymentRequest request;
@@ -64,10 +65,6 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         card = new PaymentCard().setPan("9900000000005159").setCv2("123")
                 .setExpiryDate("1115");
 
-        address = new BillingAddress().setLine1("Flat1").setLine2("Cauldron House")
-                .setLine3("A Street").setLine4("Twertonia").setCity("Bath").setRegion("Somerset")
-                .setPostcode("BA1 234").setCountryCode("GBR");
-
         credentials = new PayPointCredentials().setInstallationId("1212312")
                 .setToken("VALID_TOKEN");
 
@@ -75,11 +72,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
         request = new PaymentRequest();
         request.setTransaction(transaction)
-                .setCard(card)
-                .setAddress(address);
-
-        // self signed cert
-        //url = "https://192.168.6.143";
+                .setCard(card);
 
         pm.setUrl(url);
         pm.setCredentials(credentials);
@@ -472,6 +465,61 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
     @Test
     public void testDeferredPayment() throws Exception {
+        transaction.setDeferred(true);
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testBillingAddress() throws Exception {
+
+        BillingAddress address = new BillingAddress().setLine1("Flat1").setLine2("Cauldron House")
+                .setLine3("A Street").setLine4("Twertonia").setCity("Bath").setRegion("Somerset")
+                .setPostcode("BA1 234").setCountryCode("GBR");
+
+        request.setAddress(address);
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testFinancialServices() throws Exception {
+
+        FinancialServices financialServices = new FinancialServices()
+                .setDateOfBirth("19870818")
+                .setSurname("Smith")
+                .setAccountNumber("123ABC")
+                .setPostCode("BS20");
+
+        request.setFinancialServices(financialServices);
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testCustomerDetails() throws Exception {
+
+        CustomerDetails customerDetails = new CustomerDetails()
+                .setEmail("test@paypoint.com")
+                .setDateOfBirth("1900-01-01")
+                .setTelephone("01225 123456");
+
+        request.setCustomer(customerDetails);
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testDeferred() throws Exception {
+
         transaction.setDeferred(true);
 
         makePayment();
