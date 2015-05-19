@@ -46,11 +46,14 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
 
         injectInstrumentation(InstrumentationRegistry.getInstrumentation());
 
+        // 10.0.2.2 is local loopback to host machine - http://developer.android.com/tools/devices/emulator.html#networkaddresses
+        String host = "http://10.0.2.2:5000";
+
         // this sets up a fast redirect where the ACS page returns the term URL after a few
         // seconds without any user input
         Intent intent = new Intent(getInstrumentation().getContext(), ThreeDSActivity.class);
-        intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, "http://192.168.3.140:5000/acs/auth");
-        intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, "http://192.168.3.140:5000/landingpage/");
+        intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, host + "/acs/auth");
+        intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, host + "/landingpage/");
         intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, pareq);
         intent.putExtra(ThreeDSActivity.EXTRA_MD, "7897162297"); intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, "7897162297");
         intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, sessionTimeout);
@@ -72,9 +75,9 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         activity.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
-        // wait for 10 seconds for thread to become unblocked
+        // wait for 15 seconds for thread to become unblocked
         try {
-            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
+            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
         } catch (Throwable e) {
             // swallow
         }
@@ -94,9 +97,9 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         activity.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
-        // wait for 10 seconds for thread to become unblocked
+        // wait for 15 seconds for thread to become unblocked
         try {
-            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
+            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
         } catch (Throwable e) {
             // should timeout
             Assert.assertTrue(true);
