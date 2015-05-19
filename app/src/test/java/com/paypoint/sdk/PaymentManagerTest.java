@@ -525,12 +525,21 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
         List<CustomField> customFields = new ArrayList<CustomField>();
 
-        for (int i = 0; i < 4; i++) {
-            customFields.add(new CustomField()
-                    .setName("Name " + (i+1))
-                    .setValue("Value " + (i + 1))
-                    .setTransient(true));
-        }
+        customFields.add(new CustomField()
+                .setName("Name 1")
+                .setValue("Value 1")
+                .setTransient(true));
+
+        customFields.add(new CustomField()
+                .setName("Name 2")
+                .setTransient(true));
+
+        customFields.add(new CustomField()
+                .setName("Name 3")
+                .setTransient(false));
+
+        customFields.add(new CustomField()
+                .setName("Name 4"));
 
         request.setCustomFields(customFields);
 
