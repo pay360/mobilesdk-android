@@ -8,13 +8,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.provider.Settings;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.InstrumentationTestCase;
+import android.text.TextUtils;
 
-import com.paypoint.sdk.library.ThreeDSActivity;
+import com.paypoint.sdk.library.*;
 
 import junit.framework.Assert;
 
@@ -34,6 +36,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
     private ThreeDSActivity activity;
     private boolean responseReceived;
     private boolean success;
+    private String pares;
 
     public ThreeDSActivityTest() {
         super(ThreeDSActivity.class);
@@ -46,8 +49,8 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         // this sets up a fast redirect where the ACS page returns the term URL after a few
         // seconds without any user input
         Intent intent = new Intent(getInstrumentation().getContext(), ThreeDSActivity.class);
-        intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, "http://192.168.3.242:5000/acs/auth");
-        intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, "http://192.168.3.242:5000/landingpage/");
+        intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, "http://192.168.3.140:5000/acs/auth");
+        intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, "http://192.168.3.140:5000/landingpage/");
         intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, pareq);
         intent.putExtra(ThreeDSActivity.EXTRA_MD, "7897162297"); intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, "7897162297");
         intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, sessionTimeout);
@@ -76,6 +79,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
             // swallow
         }
         Assert.assertTrue(success);
+        Assert.assertNotNull(pares);
     }
 
     /**
@@ -133,6 +137,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         @Override
         public void onReceive(Context context, Intent intent) {
             success = intent.getBooleanExtra(ThreeDSActivity.EXTRA_SUCCESS, false);
+            pares = intent.getStringExtra(ThreeDSActivity.EXTRA_PARES);
             responseReceived = true;
         }
     }
