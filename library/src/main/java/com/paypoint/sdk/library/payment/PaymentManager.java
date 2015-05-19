@@ -20,12 +20,13 @@ import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
 import com.paypoint.sdk.library.network.SelfSignedSocketFactory;
+import com.paypoint.sdk.library.payment.request.CustomField;
 import com.paypoint.sdk.library.payment.request.DeviceInfo;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.PaymentMethod;
 import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
 import com.paypoint.sdk.library.payment.request.ThreeDSResumeRequest;
-import com.paypoint.sdk.library.payment.response.Response;
+import com.paypoint.sdk.library.payment.response.MakePaymentResponse;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.squareup.okhttp.OkHttpClient;
 
@@ -231,7 +232,8 @@ public class PaymentManager {
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
                     .setBillingAddress(request.getAddress()))
                 .setFinancialServices(request.getFinancialServices())
-                .setCustomer(request.getCustomer());
+                .setCustomer(request.getCustomer())
+                .setCustomFields(request.getCustomFields());
 
         PayPointService service = null;
 
@@ -244,9 +246,9 @@ public class PaymentManager {
 
         service.makePayment(jsonRequest, "Bearer " +
                     credentials.getToken(), credentials.getInstallationId(),
-            new Callback<Response>() {
+            new Callback<MakePaymentResponse>() {
                 @Override
-                public void success(Response paymentResponse, retrofit.client.Response response) {
+                public void success(MakePaymentResponse paymentResponse, retrofit.client.Response response) {
                     onPaymentSucceeded(paymentResponse, response);
                 }
 
@@ -279,6 +281,13 @@ public class PaymentManager {
 
         // validate card data
         request.getCard().validateData();
+
+        // validate custom fields if set
+        if (request.getCustomFields() != null) {
+            for (CustomField customField : request.getCustomFields()) {
+                customField.validateData();
+            }
+        }
     }
 
     public void validateCardPan(String pan) throws PaymentValidationException {
@@ -298,7 +307,7 @@ public class PaymentManager {
      * @param paymentResponse
      * @param response
      */
-    private void onPaymentSucceeded(Response paymentResponse, retrofit.client.Response response) {
+    private void onPaymentSucceeded(MakePaymentResponse paymentResponse, retrofit.client.Response response) {
 
         if (paymentResponse != null &&
             (paymentResponse.isSuccessful() ||
@@ -308,7 +317,7 @@ public class PaymentManager {
             if (paymentResponse.getReasonCode() == REASON_SUSPENDED_FOR_3D_SECURE) {
 
                 // ensure response contains valid 3DS credentials
-                Response.threeDSecure threeDSecure = paymentResponse.getThreeDSecure();
+                MakePaymentResponse.threeDSecure threeDSecure = paymentResponse.getThreeDSecure();
 
                 if (threeDSecure == null ||
                    !threeDSecure.validateData()) {
@@ -345,6 +354,7 @@ public class PaymentManager {
                 success.setTransactionId(paymentResponse.getTransactionId());
                 success.setMerchantReference(paymentResponse.getMerchantRef());
                 success.setLastFour(paymentResponse.getLastFourDigits());
+                success.setCustomFields(paymentResponse.getCustomFields());
 
                 executeCallback(success);
             }
@@ -375,7 +385,7 @@ public class PaymentManager {
                 error.getNetworkError().setHttpStatusCode(retrofitError.getResponse().getStatus());
 
                 // attempt to parse JSON in the response
-                Response paymentResponse = parseErrorResponse(retrofitError);
+                MakePaymentResponse paymentResponse = parseErrorResponse(retrofitError);
 
                 if (paymentResponse != null) {
                     error.setKind(PaymentError.Kind.PAYPOINT);
@@ -420,9 +430,9 @@ public class PaymentManager {
      * @param retrofitError
      * @return
      */
-    private Response parseErrorResponse(RetrofitError retrofitError) {
+    private MakePaymentResponse parseErrorResponse(RetrofitError retrofitError) {
 
-        Response response = null;
+        MakePaymentResponse response = null;
 
         try {
 
@@ -431,7 +441,7 @@ public class PaymentManager {
                 retrofitError.getResponse().getBody() != null) {
                 try {
                     String json = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
-                    response = new Gson().fromJson(json, Response.class);
+                    response = new Gson().fromJson(json, MakePaymentResponse.class);
                 } catch (Exception e) {
                     // if JSON is invalid swallow exception - SDK will return
                 }
@@ -476,9 +486,9 @@ public class PaymentManager {
                 service.resume3DS(jsonRequest, "Bearer " +
                                 credentials.getToken(), credentials.getInstallationId(),
                                 transactionId,
-                        new Callback<Response>() {
+                        new Callback<MakePaymentResponse>() {
                             @Override
-                            public void success(Response paymentResponse, retrofit.client.Response response) {
+                            public void success(MakePaymentResponse paymentResponse, retrofit.client.Response response) {
                                 onPaymentSucceeded(paymentResponse, response);
                             }
 

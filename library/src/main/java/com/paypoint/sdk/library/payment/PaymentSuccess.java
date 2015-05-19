@@ -4,7 +4,10 @@
 
 package com.paypoint.sdk.library.payment;
 
+import com.paypoint.sdk.library.payment.request.CustomField;
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Payment success data from the sever
@@ -20,6 +23,8 @@ public class PaymentSuccess implements Serializable {
     private float amount;
 
     private String currency;
+
+    private List<CustomField> customFields;
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
@@ -59,5 +64,13 @@ public class PaymentSuccess implements Serializable {
 
     public String getCurrency() {
         return currency;
+    }
+
+    public List<CustomField> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(List<CustomField> customFields) {
+        this.customFields = customFields;
     }
 }

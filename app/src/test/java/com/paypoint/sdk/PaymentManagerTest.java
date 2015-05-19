@@ -6,6 +6,7 @@ import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
 import com.paypoint.sdk.library.payment.PaymentSuccess;
 import com.paypoint.sdk.library.payment.request.BillingAddress;
+import com.paypoint.sdk.library.payment.request.CustomField;
 import com.paypoint.sdk.library.payment.request.CustomerDetails;
 import com.paypoint.sdk.library.payment.request.FinancialServices;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
@@ -21,7 +22,9 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -518,13 +521,53 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     }
 
     @Test
-    public void testDeferred() throws Exception {
+    public void testCustomFields() throws Exception {
 
-        transaction.setDeferred(true);
+        List<CustomField> customFields = new ArrayList<CustomField>();
+
+        for (int i = 0; i < 4; i++) {
+            customFields.add(new CustomField()
+                    .setName("Name " + (i+1))
+                    .setValue("Value " + (i + 1))
+                    .setTransient(true));
+        }
+
+        request.setCustomFields(customFields);
 
         makePayment();
 
         Assert.assertTrue(success);
+
+        // custom fields are echoed back in the response
+        Assert.assertNotNull(responseSuccess);
+        Assert.assertNotNull(responseSuccess.getCustomFields());
+        Assert.assertEquals(customFields, responseSuccess.getCustomFields());
+    }
+
+    @Test
+    public void testCustomFieldsLengthExceeded() throws Exception {
+        List<CustomField> customFields = new ArrayList<CustomField>();
+
+        // create custom field with length > 255
+        StringBuilder value = new StringBuilder();
+
+        for (int i = 0; i < 256; i++) {
+            value.append('1');
+        }
+
+        customFields.add(new CustomField()
+                .setName("Name")
+                .setValue(value.toString())
+                .setTransient(true));
+
+        request.setCustomFields(customFields);
+
+        try {
+            makePayment();
+            Assert.fail();
+        } catch (PaymentValidationException e) {
+            checkPaymentException(e, PaymentValidationException.ErrorCode.CUSTOM_FIELD_LENGTH_EXCEEDED);
+        }
     }
 
     private void makePayment() throws Exception {

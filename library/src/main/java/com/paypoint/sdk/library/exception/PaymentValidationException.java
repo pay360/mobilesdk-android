@@ -71,7 +71,12 @@ public class PaymentValidationException extends Exception {
         /**
          * Empty PaymentCard
          */
-        INVALID_CARD
+        INVALID_CARD,
+
+        /**
+         * Custom field exceeds maximum length
+         */
+        CUSTOM_FIELD_LENGTH_EXCEEDED
     }
 
     private ErrorCode errorCode;

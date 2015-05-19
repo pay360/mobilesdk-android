@@ -5,11 +5,14 @@
 package com.paypoint.sdk.library.payment;
 
 import com.paypoint.sdk.library.payment.request.BillingAddress;
+import com.paypoint.sdk.library.payment.request.CustomField;
 import com.paypoint.sdk.library.payment.request.CustomerDetails;
 import com.paypoint.sdk.library.payment.request.FinancialServices;
 import com.paypoint.sdk.library.payment.request.PaymentCard;
 import com.paypoint.sdk.library.payment.request.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
+
+import java.util.List;
 
 /**
  * Models a payment request
@@ -25,6 +28,8 @@ public class PaymentRequest {
     private FinancialServices financialServices;
 
     private CustomerDetails customer;
+
+    private List<CustomField> customFields;
 
     public Transaction getTransaction() {
         return transaction;
@@ -68,6 +73,15 @@ public class PaymentRequest {
 
     public PaymentRequest setCustomer(CustomerDetails customer) {
         this.customer = customer;
+        return this;
+    }
+
+    public List<CustomField> getCustomFields() {
+        return customFields;
+    }
+
+    public PaymentRequest setCustomFields(List<CustomField> customFields) {
+        this.customFields = customFields;
         return this;
     }
 }
