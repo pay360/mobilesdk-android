@@ -4,10 +4,16 @@
 
 package com.paypoint.sdk.library.payment;
 
+import com.paypoint.sdk.library.payment.request.CustomField;
+
+import java.util.List;
+
 /**
  * Error from payment request
  */
 public class PaymentError {
+
+    private List<CustomField> customFields;
 
     public enum Kind {
         PAYPOINT,
@@ -109,6 +115,14 @@ public class PaymentError {
 
     public NetworkError getNetworkError() {
         return networkError;
+    }
+
+    public List<CustomField> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(List<CustomField> customFields) {
+        this.customFields = customFields;
     }
 
     public class PayPointError {

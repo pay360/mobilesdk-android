@@ -554,6 +554,41 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     }
 
     @Test
+    public void testCustomFieldsDecline() throws Exception {
+
+        card.setPan("9900 0000 0000 5282");
+
+        List<CustomField> customFields = new ArrayList<CustomField>();
+
+        customFields.add(new CustomField()
+                .setName("Name 1")
+                .setValue("Value 1")
+                .setTransient(true));
+
+        customFields.add(new CustomField()
+                .setName("Name 2")
+                .setTransient(true));
+
+        customFields.add(new CustomField()
+                .setName("Name 3")
+                .setTransient(false));
+
+        customFields.add(new CustomField()
+                .setName("Name 4"));
+
+        request.setCustomFields(customFields);
+
+        makePayment();
+
+        Assert.assertFalse(success);
+
+        // custom fields are echoed back in the response
+        Assert.assertNotNull(responseError);
+        Assert.assertNotNull(responseError.getCustomFields());
+        Assert.assertEquals(customFields, responseError.getCustomFields());
+    }
+
+    @Test
     public void testCustomFieldsLengthExceeded() throws Exception {
         List<CustomField> customFields = new ArrayList<CustomField>();
 

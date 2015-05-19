@@ -364,6 +364,7 @@ public class PaymentManager {
             error.setKind(PaymentError.Kind.PAYPOINT);
             error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
             error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+            error.setCustomFields(paymentResponse.getCustomFields());
 
             executeCallback(error);
         }
@@ -391,6 +392,7 @@ public class PaymentManager {
                     error.setKind(PaymentError.Kind.PAYPOINT);
                     error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
                     error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+                    error.setCustomFields(paymentResponse.getCustomFields());
                 }
             }
         }
