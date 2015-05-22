@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Payment success data from the sever
+ * Payment success data
  */
 public class PaymentSuccess implements Serializable {
 

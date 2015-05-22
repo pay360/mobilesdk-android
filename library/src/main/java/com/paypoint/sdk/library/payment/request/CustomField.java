@@ -9,6 +9,9 @@ import android.text.TextUtils;
 import com.google.gson.annotations.SerializedName;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
 
+/**
+ * Optional payment custom field
+ */
 public class CustomField {
 
     private static final int MAX_VALUE_LENGTH = 255;

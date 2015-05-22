@@ -150,33 +150,86 @@ public class PaymentManager {
         return adapter.create(PayPointService.class);
     }
 
+    /**
+     * Timeout waiting for response from PayPoint server
+     * Defaults to 60s.
+     * DO NOT ALTER WITHOUT GOOD REASON
+     * @param responseTimeoutSeconds
+     * @return
+     */
     public PaymentManager setResponseTimeout(int responseTimeoutSeconds) {
         this.responseTimeoutSeconds = responseTimeoutSeconds;
         return this;
     }
 
+    /**
+     * URL of the PayPoint server
+     * @param url the base url of the PayPoint server. The URL can be obtained from
+     * {@link com.paypoint.sdk.library.network.EndpointManager#getEndpointUrl(com.paypoint.sdk.library.network.EndpointManager.Environment)}
+     */
     public PaymentManager setUrl(String url) {
         this.url = url;
         return this;
     }
 
+    /**
+     * PayPoint authentication credentials
+     * @param credentials
+     * @return
+     */
     public PaymentManager setCredentials(PayPointCredentials credentials) {
         this.credentials = credentials;
         return this;
     }
 
+    /**
+     * Register the payment callback. Call this prior to {@link #makePayment(PaymentRequest)}
+     * @param callback
+     */
     public synchronized void registerPaymentCallback(PaymentManager.MakePaymentCallback callback) {
         this.callback = callback;
     }
 
+    /**
+     * Unregister the payment callback. Call this prior to exiting your payment activity/fragment
+     */
     public synchronized void unregisterPaymentCallback() {
         this.callback = null;
     }
 
+    /**
+     * Locks the callback mechanism during screen orientation change. Call this BEFORE {@link #unregisterPaymentCallback()}
+     * in onPause() activity/fragment lifecycle e.g.
+     *
+     * <p>
+     * <pre>
+     *protected void onPause() {
+     *  super.onPause();
+     *
+     *  paymentManager.lockCallback();
+     *  paymentManager.unregisterPaymentCallback();
+     *}
+     * </pre>
+     *
+     */
     public synchronized void lockCallback() {
         this.callbackLocked = true;
     }
 
+    /**
+     * Unkocks the callback mechanism during screen orientation change. Call this AFTER {@link #registerPaymentCallback(com.paypoint.sdk.library.payment.PaymentManager.MakePaymentCallback)}
+     * in onResume() activity/fragment lifecycle e.g.
+     *
+     * <p>
+     * <pre>
+     *protected void onResume() {
+     *  super.onResume();
+     *
+     *  paymentManager.registerPaymentCallback(this);
+     *  paymentManager.unlockCallback();
+     *}
+     * </pre>
+     */
     public synchronized void unlockCallback() {
         this.callbackLocked = false;
 
@@ -193,6 +246,14 @@ public class PaymentManager {
         }
     }
 
+    /**
+     * Asynchronously make the payment using the values specified in the request
+     * Call {@link #registerPaymentCallback(com.paypoint.sdk.library.payment.PaymentManager.MakePaymentCallback)}
+     * to set up payment callback
+     * @param request
+     * @throws PaymentValidationException incorrect payment details in the request.
+     * Use {@link com.paypoint.sdk.library.exception.PaymentValidationException#getErrorCode()} to determine error
+     */
     public void makePayment(final PaymentRequest request)
             throws PaymentValidationException {
 
@@ -259,6 +320,13 @@ public class PaymentManager {
             });
     }
 
+    /**
+     * Validates the payment request.
+     * Call this prior to going online to get PayPoint credentials for the call to {@link #makePayment(PaymentRequest)}
+     * to detect any errors in the payment form
+     * @param request
+     * @throws PaymentValidationException
+     */
     public void validatePaymentDetails(com.paypoint.sdk.library.payment.PaymentRequest request)
             throws PaymentValidationException {
 
@@ -290,14 +358,29 @@ public class PaymentManager {
         }
     }
 
+    /**
+     * Validates PAN/card number. Useful for inline form validation
+     * @param pan
+     * @throws PaymentValidationException
+     */
     public void validateCardPan(String pan) throws PaymentValidationException {
         PaymentCard.validatePan(pan);
     }
 
+    /**
+     * Validates card expiry. Useful for inline form validation
+     * @param expiry
+     * @throws PaymentValidationException
+     */
     public void validateCardExpiry(String expiry) throws PaymentValidationException {
         PaymentCard.validateExpiry(expiry);
     }
 
+    /**
+     * Validates cv2. Useful for inline form validation
+     * @param cv2
+     * @throws PaymentValidationException
+     */
     public void validateCardCv2(String cv2) throws PaymentValidationException {
         PaymentCard.validateCv2(cv2);
     }

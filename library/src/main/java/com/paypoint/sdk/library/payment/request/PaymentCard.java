@@ -14,7 +14,7 @@ import com.paypoint.sdk.library.utils.StringUtils;
 import java.util.Date;
 
 /**
- * Created by HendryP on 08/04/2015.
+ * Mandatory payment card details
  */
 public class PaymentCard {
 

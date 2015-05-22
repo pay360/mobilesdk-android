@@ -7,7 +7,8 @@ package com.paypoint.sdk.library.payment.request;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Created by HendryP on 08/04/2015.
+ * Optional payment billing address
+ *
  */
 public class BillingAddress {
 

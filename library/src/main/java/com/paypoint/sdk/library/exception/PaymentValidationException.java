@@ -4,6 +4,9 @@
 
 package com.paypoint.sdk.library.exception;
 
+/**
+ * Payment validation error
+ */
 public class PaymentValidationException extends Exception {
 
     public enum ErrorCode {

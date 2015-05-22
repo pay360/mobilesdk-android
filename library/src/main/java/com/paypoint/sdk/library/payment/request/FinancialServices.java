@@ -6,6 +6,9 @@ package com.paypoint.sdk.library.payment.request;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Optional payment financial services
+ */
 public class FinancialServices {
 
     @SerializedName("dateOfBirth")

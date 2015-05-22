@@ -15,7 +15,7 @@ import com.paypoint.sdk.library.security.PayPointCredentials;
 import java.util.List;
 
 /**
- * Models a payment request
+ * Represents a payment
  */
 public class PaymentRequest {
 
@@ -35,51 +35,75 @@ public class PaymentRequest {
         return transaction;
     }
 
+    /**
+     * Set mandatory transaction details
+     * @param transaction
+     */
     public PaymentRequest setTransaction(Transaction transaction) {
         this.transaction = transaction;
         return this;
     }
 
-    public PaymentCard getCard() {
+    protected PaymentCard getCard() {
         return card;
     }
 
+    /**
+     * Set mandatory card details
+     * @param card
+     */
     public PaymentRequest setCard(PaymentCard card) {
         this.card = card;
         return this;
     }
 
-    public BillingAddress getAddress() {
+    protected BillingAddress getAddress() {
         return address;
     }
 
+    /**
+     * Set mandatory optional billing address
+     * @param address
+     */
     public PaymentRequest setAddress(BillingAddress address) {
         this.address = address;
         return this;
     }
 
-    public FinancialServices getFinancialServices() {
+    protected FinancialServices getFinancialServices() {
         return financialServices;
     }
 
+    /**
+     * Set optional financial services
+     * @param financialServices
+     */
     public PaymentRequest setFinancialServices(FinancialServices financialServices) {
         this.financialServices = financialServices;
         return this;
     }
 
-    public CustomerDetails getCustomer() {
+    protected CustomerDetails getCustomer() {
         return customer;
     }
 
+    /**
+     * Set optional customer details
+     * @param customer
+     */
     public PaymentRequest setCustomer(CustomerDetails customer) {
         this.customer = customer;
         return this;
     }
 
-    public List<CustomField> getCustomFields() {
+    protected List<CustomField> getCustomFields() {
         return customFields;
     }
 
+    /**
+     * Set optional custom fields
+     * @param customFields
+     */
     public PaymentRequest setCustomFields(List<CustomField> customFields) {
         this.customFields = customFields;
         return this;

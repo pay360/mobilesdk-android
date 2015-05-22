@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
 
 /**
- * Created by HendryP on 08/04/2015.
+ * Mandatory payment transaction details
  */
 public class Transaction {
 
