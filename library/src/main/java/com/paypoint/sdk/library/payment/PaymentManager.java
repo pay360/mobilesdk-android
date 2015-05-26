@@ -44,7 +44,9 @@ import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
 
 /**
- * Manager for handling payment requests
+ * Handles payments
+ *
+ * <p>Call {@link #makePayment(PaymentRequest)} to initiate payment
  */
 public class PaymentManager {
 
@@ -173,8 +175,8 @@ public class PaymentManager {
     }
 
     /**
-     * PayPoint authentication credentials
-     * @param credentials
+     * Set PayPoint authentication credentials - retrieve these from a call to YOUR server
+     * @param credentials the credentials required to make a payment
      * @return
      */
     public PaymentManager setCredentials(PayPointCredentials credentials) {
@@ -248,9 +250,13 @@ public class PaymentManager {
 
     /**
      * Asynchronously make the payment using the values specified in the request
-     * Call {@link #registerPaymentCallback(com.paypoint.sdk.library.payment.PaymentManager.MakePaymentCallback)}
-     * to set up payment callback
-     * @param request
+     *
+     * <p>You must call these functions first:
+     * <p>{@link #registerPaymentCallback(com.paypoint.sdk.library.payment.PaymentManager.MakePaymentCallback)}
+     * <p>{@link #setUrl(String)}
+     * <p>{@link #setCredentials(com.paypoint.sdk.library.security.PayPointCredentials)}
+     *
+     * @param request payment details
      * @throws PaymentValidationException incorrect payment details in the request.
      * Use {@link com.paypoint.sdk.library.exception.PaymentValidationException#getErrorCode()} to determine error
      */

@@ -26,24 +26,28 @@ public class PaymentSuccess implements Serializable {
 
     private List<CustomField> customFields;
 
-    public void setTransactionId(String transactionId) {
+    protected void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
     }
 
-    public void setMerchantReference(String merchantReference) {
+    protected void setMerchantReference(String merchantReference) {
         this.merchantReference = merchantReference;
     }
 
-    public void setLastFour(String lastFour) {
+    protected void setLastFour(String lastFour) {
         this.lastFour = lastFour;
     }
 
-    public void setAmount(float amount) {
+    protected void setAmount(float amount) {
         this.amount = amount;
     }
 
-    public void setCurrency(String currency) {
+    protected void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    protected void setCustomFields(List<CustomField> customFields) {
+        this.customFields = customFields;
     }
 
     public String getTransactionId() {
@@ -68,9 +72,5 @@ public class PaymentSuccess implements Serializable {
 
     public List<CustomField> getCustomFields() {
         return customFields;
-    }
-
-    public void setCustomFields(List<CustomField> customFields) {
-        this.customFields = customFields;
     }
 }

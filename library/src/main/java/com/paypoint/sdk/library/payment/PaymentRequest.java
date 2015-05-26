@@ -31,7 +31,7 @@ public class PaymentRequest {
 
     private List<CustomField> customFields;
 
-    public Transaction getTransaction() {
+    protected Transaction getTransaction() {
         return transaction;
     }
 
@@ -62,7 +62,7 @@ public class PaymentRequest {
     }
 
     /**
-     * Set mandatory optional billing address
+     * Set optional billing address
      * @param address
      */
     public PaymentRequest setAddress(BillingAddress address) {

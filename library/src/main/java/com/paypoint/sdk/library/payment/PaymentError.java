@@ -105,7 +105,7 @@ public class PaymentError {
         return kind;
     }
 
-    public void setKind(Kind kind) {
+    protected void setKind(Kind kind) {
         this.kind = kind;
     }
 
@@ -121,7 +121,7 @@ public class PaymentError {
         return customFields;
     }
 
-    public void setCustomFields(List<CustomField> customFields) {
+    protected void setCustomFields(List<CustomField> customFields) {
         this.customFields = customFields;
     }
 

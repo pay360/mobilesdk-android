@@ -57,6 +57,9 @@ android.libraryVariants.all { variant ->
         exclude '**/R.java'
         exclude '**/log'
         exclude '**/utils'
+        exclude '**/device'
+        exclude '**/response'
+        exclude '**/ThreeDSActivity.java'
     }
 }
 
