@@ -16,7 +16,15 @@ public class PaymentError {
     private List<CustomField> customFields;
 
     public enum Kind {
+
+        /**
+         * Transaction failed due to error at PayPoint server
+         */
         PAYPOINT,
+
+        /**
+         * Transaction failed due to network error
+         */
         NETWORK;
     }
 

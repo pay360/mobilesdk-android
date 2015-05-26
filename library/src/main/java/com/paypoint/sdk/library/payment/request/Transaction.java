@@ -29,11 +29,21 @@ public class Transaction {
     @SerializedName("deferred")
     private boolean deferred;
 
+    /**
+     * Transaction currency
+     * @param currency e.g. "GDP"
+     * @return
+     */
     public Transaction setCurrency(String currency) {
         this.currency = currency;
         return this;
     }
 
+    /**
+     * Transaction amount
+     * @param amount
+     * @return
+     */
     public Transaction setAmount(float amount) {
         this.amount = amount;
         return this;
@@ -44,11 +54,21 @@ public class Transaction {
         return this;
     }
 
+    /**
+     * Merchant reference
+     * @param merchantReference generate a unique valid for tracking
+     * @return
+     */
     public Transaction setMerchantReference(String merchantReference) {
         this.merchantReference = merchantReference;
         return this;
     }
 
+    /**
+     * Deferred transaction
+     * @param deferred to to true for authorization
+     * @return
+     */
     public Transaction setDeferred(boolean deferred) {
         this.deferred = deferred;
         return this;
