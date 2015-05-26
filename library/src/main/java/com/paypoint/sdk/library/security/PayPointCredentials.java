@@ -9,7 +9,7 @@ import android.text.TextUtils;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 
 /**
- * Created by HendryP on 09/04/2015.
+ * Credentials required for PayPoint authentication
  */
 public class PayPointCredentials {
 
