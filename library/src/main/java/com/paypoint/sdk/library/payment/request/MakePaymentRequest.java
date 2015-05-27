@@ -13,6 +13,12 @@ public class MakePaymentRequest {
     @SerializedName("sdkVersion")
     private String sdkVersion;
 
+    @SerializedName("merchantAppName")
+    private String merchantAppName;
+
+    @SerializedName("merchantAppVersion")
+    private String merchantAppVersion;
+
     @SerializedName("deviceInfo")
     private DeviceInfo deviceInfo;
 
@@ -33,6 +39,16 @@ public class MakePaymentRequest {
 
     public MakePaymentRequest setSdkVersion(String sdkVersion) {
         this.sdkVersion = sdkVersion;
+        return this;
+    }
+
+    public MakePaymentRequest setMerchantAppName(String merchantAppName) {
+        this.merchantAppName = merchantAppName;
+        return this;
+    }
+
+    public MakePaymentRequest setMerchantAppVersion(String merchantAppVersion) {
+        this.merchantAppVersion = merchantAppVersion;
         return this;
     }
 

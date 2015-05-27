@@ -294,6 +294,8 @@ public class PaymentManager {
         // call REST endpoint
         MakePaymentRequest jsonRequest = new MakePaymentRequest()
                 .setSdkVersion(deviceManager.getSdkVersion())
+                .setMerchantAppName(deviceManager.getMerchantAppName())
+                .setMerchantAppVersion(deviceManager.getMerchantAppVersion())
                 .setDeviceInfo(deviceInfo)
                 .setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
