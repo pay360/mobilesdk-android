@@ -31,7 +31,7 @@ public interface PayPointService {
     @GET("/acceptor/rest/mobile/transactions/{installationId}/opref/{operationId}")
     Observable<MakePaymentResponse> getPaymentStatus(@Header("Authorization") String token,
                                                      @Path("installationId") String installationId,
-                                                     @Header("operationId") String operationId);
+                                                     @Header("AP-Operation-ID") String operationId);
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/acceptor/rest/mobile/transactions/{installationId}/{transactionId}/resume")
@@ -39,6 +39,6 @@ public interface PayPointService {
                                               @Header("Authorization") String token,
                                               @Path("installationId") String installationId,
                                               @Path("transactionId") String transactionId,
-                                              @Header("operationId") String operationId);
+                                              @Header("AP-Operation-ID") String operationId);
 
 }
