@@ -333,9 +333,9 @@ public class PaymentManager implements Callback<MakePaymentResponse> {
     }
 
     private void onEventSessionTimeout(State state) {
-        if (state != State.STATE_IDLE) {
-            onSessionEnd();
+        onSessionEnd();
 
+        if (state != State.STATE_IDLE) {
             PaymentError error = new PaymentError();
             error.setKind(PaymentError.Kind.NETWORK);
 
@@ -771,6 +771,8 @@ public class PaymentManager implements Callback<MakePaymentResponse> {
 
     private void executeCallback(PaymentError error) {
 
+        onSessionEnd();
+
         // TODO stop session timer
         if (callbackLocked) {
             // store callback for when the callee re-registers the callback
@@ -787,6 +789,8 @@ public class PaymentManager implements Callback<MakePaymentResponse> {
     }
 
     private void executeCallback(PaymentSuccess success) {
+
+        onSessionEnd();
 
         // TODO stop session timer
         if (callbackLocked) {
