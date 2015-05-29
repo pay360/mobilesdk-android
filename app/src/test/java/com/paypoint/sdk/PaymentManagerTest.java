@@ -158,7 +158,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     public void testCardWaitFail() throws Exception {
         responseTimeout = 1;
 
-        pm.setResponseTimeout(responseTimeout);
+        pm.setSessionTimeout(responseTimeout);
 
         // default is to wait 60s - this card returns after 2s
         card.setPan("9900000000000168");
@@ -175,7 +175,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
         responseTimeout = 4;
 
-        pm.setResponseTimeout(responseTimeout);
+        pm.setSessionTimeout(responseTimeout);
 
         makePayment();
 

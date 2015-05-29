@@ -10,10 +10,12 @@ import com.paypoint.sdk.library.payment.response.MakePaymentResponse;
 
 import retrofit.Callback;
 import retrofit.http.Body;
+import retrofit.http.GET;
 import retrofit.http.Header;
 import retrofit.http.Headers;
 import retrofit.http.POST;
 import retrofit.http.Path;
+import rx.Observable;
 
 /**
  * PayPoint Retrofit REST service
@@ -22,16 +24,21 @@ public interface PayPointService {
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/acceptor/rest/mobile/transactions/{installationId}/payment")
-    void makePayment(@Body MakePaymentRequest request,
-                    @Header("Authorization") String token,
-                    @Path("installationId") String installationId,
-                    Callback<MakePaymentResponse> callback);
+    Observable<MakePaymentResponse> makePayment(@Body MakePaymentRequest request,
+                                                @Header("Authorization") String token,
+                                                @Path("installationId") String installationId);
+
+    @GET("/acceptor/rest/mobile/transactions/{installationId}/opref/{operationId}")
+    Observable<MakePaymentResponse> getPaymentStatus(@Header("Authorization") String token,
+                                                     @Path("installationId") String installationId,
+                                                     @Header("operationId") String operationId);
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/acceptor/rest/mobile/transactions/{installationId}/{transactionId}/resume")
-    void resume3DS(@Body ThreeDSResumeRequest request,
-                     @Header("Authorization") String token,
-                     @Path("installationId") String installationId,
-                     @Path("transactionId") String transactionId,
-                     Callback<MakePaymentResponse> callback);
+    Observable<MakePaymentResponse> resume3DS(@Body ThreeDSResumeRequest request,
+                                              @Header("Authorization") String token,
+                                              @Path("installationId") String installationId,
+                                              @Path("transactionId") String transactionId,
+                                              @Header("operationId") String operationId);
+
 }
