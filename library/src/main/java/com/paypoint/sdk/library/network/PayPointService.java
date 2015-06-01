@@ -26,19 +26,20 @@ public interface PayPointService {
     @POST("/acceptor/rest/mobile/transactions/{installationId}/payment")
     Observable<MakePaymentResponse> makePayment(@Body MakePaymentRequest request,
                                                 @Header("Authorization") String token,
+                                                @Header("AP-Operation-ID") String operationId,
                                                 @Path("installationId") String installationId);
 
     @GET("/acceptor/rest/mobile/transactions/{installationId}/opref/{operationId}")
-    Observable<MakePaymentResponse> getPaymentStatus(@Header("Authorization") String token,
+    Observable<MakePaymentResponse> paymentStatus(@Header("Authorization") String token,
                                                      @Path("installationId") String installationId,
-                                                     @Header("AP-Operation-ID") String operationId);
+                                                     @Path("operationId") String operationId);
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/acceptor/rest/mobile/transactions/{installationId}/{transactionId}/resume")
     Observable<MakePaymentResponse> resume3DS(@Body ThreeDSResumeRequest request,
                                               @Header("Authorization") String token,
+                                              @Header("AP-Operation-ID") String operationId,
                                               @Path("installationId") String installationId,
-                                              @Path("transactionId") String transactionId,
-                                              @Header("AP-Operation-ID") String operationId);
+                                              @Path("transactionId") String transactionId);
 
 }

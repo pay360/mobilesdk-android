@@ -34,6 +34,10 @@ public class MakePaymentResponse {
         return outcome != null && outcome.isPending();
     }
 
+    public boolean isProcessing() {
+        return outcome != null && outcome.isProcessing();
+    }
+
     public float getAmount() {
         float amount = 0;
 
@@ -209,8 +213,9 @@ public class MakePaymentResponse {
 
     private class Outcome {
 
-        private static final String RESPONSE_SUCCESS = "SUCCESS";
-        private static final String RESPONSE_PENDING = "PENDING";
+        private static final String RESPONSE_SUCCESS    = "SUCCESS";
+        private static final String RESPONSE_PENDING    = "PENDING";
+        private static final String RESPONSE_PROCESSING = "PROCESSING";
 
         @SerializedName("status")
         private String status;
@@ -239,6 +244,10 @@ public class MakePaymentResponse {
 
         public boolean isPending() {
             return RESPONSE_PENDING.equalsIgnoreCase(status);
+        }
+
+        public boolean isProcessing() {
+            return RESPONSE_PROCESSING.equalsIgnoreCase(status);
         }
     }
 

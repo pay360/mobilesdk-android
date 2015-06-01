@@ -156,6 +156,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
     @Test
     public void testCardWaitFail() throws Exception {
+
+
         responseTimeout = 1;
 
         pm.setSessionTimeout(responseTimeout);
@@ -612,6 +614,38 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         } catch (PaymentValidationException e) {
             checkPaymentException(e, PaymentValidationException.ErrorCode.CUSTOM_FIELD_LENGTH_EXCEEDED);
         }
+    }
+
+    @Test
+    public void testReliableDeliverySuccess() throws Exception {
+
+        responseTimeout = 60;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000000267" will Simulate a network failure on the initial payment
+        // after the payment was received by PayPoint (i.e. payment will be processed)
+        card.setPan("9900000000000267");
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testReliableDeliveryFail() throws Exception {
+
+        responseTimeout = 60;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000000366" will Simulate a network failure on the initial payment
+        // before the payment was received by PayPoint (payment will not have been processed)
+        card.setPan("9900000000000366");
+
+        makePayment();
+
+        Assert.assertFalse(success);
     }
 
     private void makePayment() throws Exception {
