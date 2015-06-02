@@ -30,6 +30,10 @@ public class MakePaymentResponse {
         return outcome != null && outcome.isSuccessful();
     }
 
+    public boolean isFailed() {
+        return outcome != null && outcome.isFailed();
+    }
+
     public boolean isPending() {
         return outcome != null && outcome.isPending();
     }
@@ -216,6 +220,7 @@ public class MakePaymentResponse {
         private static final String RESPONSE_SUCCESS    = "SUCCESS";
         private static final String RESPONSE_PENDING    = "PENDING";
         private static final String RESPONSE_PROCESSING = "PROCESSING";
+        private static final String RESPONSE_FAILED     = "FAILED";
 
         @SerializedName("status")
         private String status;
@@ -248,6 +253,10 @@ public class MakePaymentResponse {
 
         public boolean isProcessing() {
             return RESPONSE_PROCESSING.equalsIgnoreCase(status);
+        }
+
+        public boolean isFailed() {
+            return RESPONSE_FAILED.equalsIgnoreCase(status);
         }
     }
 

@@ -91,15 +91,12 @@ public class PaymentManager {
     private String transactionId;
     private String operationId;
     private PayPointService service;
+    private String serviceServerUrl;
     private MakePaymentRequest makePaymentRequest;
     private ThreeDSResumeRequest threeDSResumeRequest;
     private Timer sessionTimer;
     private State state = State.STATE_IDLE;
     private CompositeSubscription subscriptions = new CompositeSubscription();
-
-    // flag to toggle reliable delivery e.g. when making payment internally call GET status
-    // until session timeout - don't require same functionality if app calls GET status directly
-    private boolean reliableDeliveryEnabled = false;
 
     private static PaymentManager instance;
 
@@ -171,36 +168,45 @@ public class PaymentManager {
     private PayPointService createService(String serverUrl)
         throws NoSuchAlgorithmException, KeyManagementException {
 
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS")
-                .create();
+        // only create service once or if serverUrl changes
+        if (service == null ||
+            !serviceServerUrl.equals(serverUrl)) {
 
-        OkHttpClient httpClient = new OkHttpClient();
-        httpClient.setConnectTimeout(HTTP_TIMEOUT_CONNECTION, TimeUnit.SECONDS);
-        httpClient.setReadTimeout(DEFAULT_SESSION_TIMEOUT, TimeUnit.SECONDS);
+            Gson gson = new GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS")
+                    .create();
 
-        // setting the executor is required for the Robolectric tests to run
-        Executor executor = Executors.newSingleThreadExecutor();
+            OkHttpClient httpClient = new OkHttpClient();
+            httpClient.setConnectTimeout(HTTP_TIMEOUT_CONNECTION, TimeUnit.SECONDS);
+            httpClient.setReadTimeout(DEFAULT_SESSION_TIMEOUT, TimeUnit.SECONDS);
 
-        isCustomUrl = false;
+            // setting the executor is required for the Robolectric tests to run
+            Executor executor = Executors.newSingleThreadExecutor();
 
-        // by default Retrofit will throw an error if self signed certificate is used so allow
-        // self signed certificate for custom URLs e.g. anything other than production
-        if (EndpointManager.isCustomUrl(serverUrl)) {
-            httpClient.setSslSocketFactory(new SelfSignedSocketFactory().build());
-            isCustomUrl = true;
+            isCustomUrl = false;
+
+            // by default Retrofit will throw an error if self signed certificate is used so allow
+            // self signed certificate for custom URLs e.g. anything other than production
+            if (EndpointManager.isCustomUrl(serverUrl)) {
+                httpClient.setSslSocketFactory(new SelfSignedSocketFactory().build());
+                isCustomUrl = true;
+            }
+
+            RestAdapter adapter = new RestAdapter.Builder()
+                    .setEndpoint(serverUrl)
+                    .setExecutors(executor, executor)
+                    .setConverter(new GsonConverter(gson))
+                            //                .setLogLevel(RestAdapter.LogLevel.FULL)
+                            //                .setLog(new AndroidLog(Logger.TAG))
+                    .setClient(new OkClient(httpClient))
+                    .build();
+
+            service = adapter.create(PayPointService.class);
+
+            serviceServerUrl = serverUrl;
         }
 
-        RestAdapter adapter = new RestAdapter.Builder()
-                .setEndpoint(serverUrl)
-                .setExecutors(executor, executor)
-                .setConverter(new GsonConverter(gson))
-//                .setLogLevel(RestAdapter.LogLevel.FULL)
-//                .setLog(new AndroidLog(Logger.TAG))
-                .setClient(new OkClient(httpClient))
-                .build();
-
-        return adapter.create(PayPointService.class);
+        return service;
     }
 
     /**
@@ -315,7 +321,7 @@ public class PaymentManager {
      * @return unique identifier
      */
     public String makePayment(final PaymentRequest request)
-            throws PaymentValidationException, PaymentInProgressException {
+            throws PaymentValidationException, PaymentInProgressException, InvalidCredentialsException {
 
         // fail fast if session still in progress
         if (state != State.STATE_IDLE) {
@@ -328,28 +334,7 @@ public class PaymentManager {
         // validate request data
         validatePaymentDetails(request);
 
-        // check null transaction
-        if (TextUtils.isEmpty(url)) {
-            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_URL);
-        }
-
-        // check null transaction
-        if (credentials == null) {
-            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
-        }
-
-        // validate credentials
-        try {
-            credentials.validateData();
-        } catch (InvalidCredentialsException e) {
-            throw new PaymentValidationException(PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
-        }
-
-        try {
-            service = createService(url);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set up payment service");
-        }
+        createService();
 
         // call REST endpoint
         makePaymentRequest = new MakePaymentRequest()
@@ -369,7 +354,7 @@ public class PaymentManager {
         operationId = UUID.randomUUID().toString();
 
         // retry on failure
-        reliableDeliveryEnabled = true;
+//        reliableDeliveryEnabled = true;
 
         onSessionStart();
 
@@ -381,21 +366,53 @@ public class PaymentManager {
         return operationId;
     }
 
-    public void getPaymentStatus(String operationId) {
+    /**
+     * Get the status of a payment
+     * @param operationId
+     * @throws InvalidCredentialsException
+     */
+    public void getPaymentStatus(String operationId) throws InvalidCredentialsException {
 
-        // TODO check credentials
+        switch (state) {
+            case STATE_IDLE:
 
-        // clear existing payment operation - this will use the same callback
-        onSessionEnd();
+                createService();
 
-        // start timer
-        onSessionStart();
+                onSessionStart();
 
-        this.operationId = operationId;
+                setState(State.STATE_STATUS_WAITING_NETWORK);
 
-        reliableDeliveryEnabled = false;
+                // wait for network connection - this returns straightaway
+                waitForNetworkConnection();
+                break;
+            case STATE_SUSPENDED_FOR_3DS:
+                // TODO suspended - return straight away
+                break;
+            default:
+                // TODO in progress - return straight away
+                break;
+        }
+    }
 
-        setState(State.STATE_STATUS_WAITING_NETWORK);
+    private void createService() throws InvalidCredentialsException {
+        // check null url
+        if (TextUtils.isEmpty(url)) {
+            throw new InvalidCredentialsException();
+        }
+
+        // check null credentials
+        if (credentials == null) {
+            throw new InvalidCredentialsException();
+        }
+
+        // validate credentials
+        credentials.validateData();
+
+        try {
+            createService(url);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set up payment service");
+        }
     }
 
     private void setState(State state) {
@@ -416,7 +433,7 @@ public class PaymentManager {
                     break;
 
                 case EVENT_RESPONSE_NOT_RECEIVED:
-                    // TODO wait for 1s to avoid overloading server?
+                    // TODO wait for short to repeatedly calling GET status?
                     onEventResponseNotReceived(state);
                     break;
 
@@ -447,8 +464,7 @@ public class PaymentManager {
         // network connected - send request
         if (state == State.STATE_PAYMENT_WAITING_NETWORK) {
             subscriptions.add(service.makePayment(makePaymentRequest, "Bearer " + credentials.getToken(),
-                    operationId,
-                    credentials.getInstallationId())
+                    operationId, credentials.getInstallationId())
                     .timeout(TIMEOUT_RESPONSE_PAYMENT, TimeUnit.SECONDS)
                     .subscribe(new ResponseObserver()));
 
@@ -584,77 +600,90 @@ public class PaymentManager {
         @Override
         public void onNext(MakePaymentResponse paymentResponse) {
             if (paymentResponse != null &&
-               (paymentResponse.isSuccessful() ||
-                paymentResponse.isPending() ||
-                paymentResponse.isProcessing())) {
+               !paymentResponse.isFailed()) {
 
                 // check if 3D secure redirect
                 if (paymentResponse.getReasonCode() == REASON_SUSPENDED_FOR_3D_SECURE) {
-
-                    // ensure response contains valid 3DS credentials
-                    MakePaymentResponse.threeDSecure threeDSecure = paymentResponse.getThreeDSecure();
-
-                    if (threeDSecure == null ||
-                       !threeDSecure.validateData()) {
-                        PaymentError error = new PaymentError();
-                        error.setKind(PaymentError.Kind.PAYPOINT);
-                        error.getPayPointError().setReasonCode(PaymentError.ReasonCode.SERVER_ERROR);
-                        error.getPayPointError().setReasonMessage("Missing 3D Secure credentials");
-
-                        executeCallback(error);
-                    } else {
-                        // show 3D secure in separate activity
-                        Intent intent = new Intent(context, ThreeDSActivity.class);
-                        intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, threeDSecure.getAcsUrl());
-                        intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, threeDSecure.getTermUrl());
-                        intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, threeDSecure.getPareq());
-                        intent.putExtra(ThreeDSActivity.EXTRA_MD, threeDSecure.getMd());
-                        intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, paymentResponse.getTransactionId());
-                        intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, threeDSecure.getSessionTimeout());
-                        intent.putExtra(ThreeDSActivity.EXTRA_ALLOW_SELF_SIGNED_CERTS, isCustomUrl);
-                        intent.putExtra(ThreeDSActivity.EXTRA_REDIRECT_TIMEOUT, threeDSecure.getRedirectTimeout());
-
-                        // required as starting the activity from an application context
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                        // cancel the session timer
-                        // TODO is it possible that could get stuck in this state causing makePayment to fails as transaction not in idle state?
-                        setState(state.STATE_SUSPENDED_FOR_3DS);
-
-                        sessionTimer.cancel();
-
-                        context.startActivity(intent);
-                    }
+                    on3DSecure(paymentResponse);
                 } else {
-
                     if (paymentResponse.isProcessing()) {
-                        // payment is in flight
-
-                        // TODO do we do this for GET status calls or just reliableDeliveryEnabled = true
-                        onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
+                        onPaymentProcessing(paymentResponse);
                     } else {
-                        // payment successful - build success object
-                        PaymentSuccess success = new PaymentSuccess();
-
-                        success.setAmount(paymentResponse.getAmount());
-                        success.setCurrency(paymentResponse.getCurrency());
-                        success.setTransactionId(paymentResponse.getTransactionId());
-                        success.setMerchantReference(paymentResponse.getMerchantRef());
-                        success.setLastFour(paymentResponse.getLastFourDigits());
-                        success.setCustomFields(paymentResponse.getCustomFields());
-
-                        executeCallback(success);
+                        onPaymentSuccess(paymentResponse);
                     }
                 }
             } else {
-                // payment failed
-                PaymentError error = new PaymentError();
-                error.setKind(PaymentError.Kind.PAYPOINT);
+                onPaymentFailed(paymentResponse);
+            }
+        }
+
+        private void onPaymentProcessing(MakePaymentResponse paymentResponse) {
+            // payment is in flight, retry status to wait until success\failure
+            onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
+        }
+
+        private void onPaymentSuccess(MakePaymentResponse paymentResponse) {
+            // payment successful - build success object
+            PaymentSuccess success = new PaymentSuccess();
+
+            success.setAmount(paymentResponse.getAmount());
+            success.setCurrency(paymentResponse.getCurrency());
+            success.setTransactionId(paymentResponse.getTransactionId());
+            success.setMerchantReference(paymentResponse.getMerchantRef());
+            success.setLastFour(paymentResponse.getLastFourDigits());
+            success.setCustomFields(paymentResponse.getCustomFields());
+
+            executeCallback(success);
+        }
+
+        private void onPaymentFailed(MakePaymentResponse paymentResponse) {
+            // payment failed
+            PaymentError error = new PaymentError();
+            error.setKind(PaymentError.Kind.PAYPOINT);
+
+            if (paymentResponse != null) {
                 error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
                 error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
                 error.setCustomFields(paymentResponse.getCustomFields());
+            }
+
+            executeCallback(error);
+        }
+
+        private void on3DSecure(MakePaymentResponse paymentResponse) {
+            // ensure response contains valid 3DS credentials
+            MakePaymentResponse.threeDSecure threeDSecure = paymentResponse.getThreeDSecure();
+
+            if (threeDSecure == null ||
+                    !threeDSecure.validateData()) {
+                PaymentError error = new PaymentError();
+                error.setKind(PaymentError.Kind.PAYPOINT);
+                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.SERVER_ERROR);
+                error.getPayPointError().setReasonMessage("Missing 3D Secure credentials");
 
                 executeCallback(error);
+            } else {
+                // show 3D secure in separate activity
+                Intent intent = new Intent(context, ThreeDSActivity.class);
+                intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, threeDSecure.getAcsUrl());
+                intent.putExtra(ThreeDSActivity.EXTRA_TERM_URL, threeDSecure.getTermUrl());
+                intent.putExtra(ThreeDSActivity.EXTRA_PAREQ, threeDSecure.getPareq());
+                intent.putExtra(ThreeDSActivity.EXTRA_MD, threeDSecure.getMd());
+                intent.putExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID, paymentResponse.getTransactionId());
+                intent.putExtra(ThreeDSActivity.EXTRA_SESSION_TIMEOUT, threeDSecure.getSessionTimeout());
+                intent.putExtra(ThreeDSActivity.EXTRA_ALLOW_SELF_SIGNED_CERTS, isCustomUrl);
+                intent.putExtra(ThreeDSActivity.EXTRA_REDIRECT_TIMEOUT, threeDSecure.getRedirectTimeout());
+
+                // required as starting the activity from an application context
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                // cancel the session timer
+                // TODO is it possible that could get stuck in this state causing makePayment to fails as transaction not in idle state?
+                setState(state.STATE_SUSPENDED_FOR_3DS);
+
+                sessionTimer.cancel();
+
+                context.startActivity(intent);
             }
         }
 
@@ -676,16 +705,10 @@ public class PaymentManager {
                 if (retrofitError.getKind() == RetrofitError.Kind.NETWORK) {
 
                     // attempt to get status of transaction
-                    if (reliableDeliveryEnabled) {
-                        onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
-                    } else {
-                        // if not enabled callback to app
-                        executeCallback(error);
-                    }
+                    onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
                 } else {
 
                     error.setKind(PaymentError.Kind.PAYPOINT);
-
 
                     if (retrofitError.getResponse() != null) {
                         int httpStatus = retrofitError.getResponse().getStatus();
@@ -694,6 +717,7 @@ public class PaymentManager {
                         if (state == State.STATE_STATUS_WAITING_RESPONSE &&
                             httpStatus == 404) {
                             // TODO what to do here??
+                            // create an errorreason
                         } else {
 
                             error.getNetworkError().setHttpStatusCode(httpStatus);
@@ -713,13 +737,7 @@ public class PaymentManager {
                 }
 
             } else {
-                // something went wrong but not a Retrofit error
-                if (reliableDeliveryEnabled) {
-                    onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
-                } else {
-                    // if not enabled callback to app
-                    executeCallback(error);
-                }
+                onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
             }
         }
 
@@ -733,7 +751,7 @@ public class PaymentManager {
 
         onSessionEnd();
 
-        // TODO stop session timer
+
         if (callbackLocked) {
             // store callback for when the callee re-registers the callback
             callbackPending = new CallbackPending();
@@ -752,7 +770,6 @@ public class PaymentManager {
 
         onSessionEnd();
 
-        // TODO stop session timer
         if (callbackLocked) {
             // store callback for when the callee re-registers the callback
             callbackPending = new CallbackPending();

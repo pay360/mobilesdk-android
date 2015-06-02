@@ -1,5 +1,6 @@
 package com.paypoint.sdk;
 
+import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
@@ -49,6 +50,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private PaymentRequest request;
     private PaymentSuccess responseSuccess;
     private PaymentError responseError;
+    private String operationId;
 
     private String url = "http://localhost:5000";
 
@@ -427,8 +429,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentValidationException e) {
-            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_URL);
+        } catch (InvalidCredentialsException e) {
+            Assert.assertTrue(true);
         }
     }
 
@@ -439,8 +441,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentValidationException e) {
-            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        } catch (InvalidCredentialsException e) {
+           Assert.assertTrue(true);
         }
     }
 
@@ -451,8 +453,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentValidationException e) {
-            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        } catch (InvalidCredentialsException e) {
+            Assert.assertTrue(true);
         }
     }
 
@@ -463,8 +465,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         try {
             makePayment();
             Assert.fail();
-        } catch (PaymentValidationException e) {
-            checkPaymentException(e, PaymentValidationException.ErrorCode.INVALID_CREDENTIALS);
+        } catch (InvalidCredentialsException e) {
+            Assert.assertTrue(true);
         }
     }
 
@@ -648,10 +650,73 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         Assert.assertFalse(success);
     }
 
+    @Test
+    public void testReliableDeliveryDelay() throws Exception {
+
+        responseTimeout = 60;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000000275" will simluate a network failure on a transaction which takes 5 seconds to process
+        card.setPan("9900000000000275");
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testGetStatusSuccess() throws Exception {
+
+        // first make successful payment
+        responseTimeout = 60;
+
+        makePayment();
+
+        Assert.assertTrue(success);
+
+        // now check status of payment - should also be successful
+        getPaymentStatus();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testGetStatusFailure() throws Exception {
+
+        // first make failed payment
+        responseTimeout = 60;
+
+        card.setPan("9900 0000 0000 5282");
+
+        makePayment();
+
+        Assert.assertFalse(success);
+
+        // now check status of payment - should also return failed
+        getPaymentStatus();
+
+        Assert.assertFalse(success);
+    }
+
     private void makePayment() throws Exception {
         success = false;
+        responseReceived = false;
 
-        pm.makePayment(request);
+        operationId = pm.makePayment(request);
+
+        try {
+            await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            success = false;
+        }
+    }
+
+    private void getPaymentStatus() throws Exception {
+        success = false;
+        responseReceived = false;
+
+        pm.getPaymentStatus(operationId);
 
         try {
             await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
