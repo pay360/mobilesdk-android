@@ -83,7 +83,22 @@ public class PaymentError {
         /**
          * An internal server error occurred at PayPoint
          */
-        SERVER_ERROR(6);
+        SERVER_ERROR(6),
+
+        /**
+         * Transaction is active but currently suspended for 3D secure
+         */
+        SUSPENDED_FOR_3D_SECURE(7),
+
+        /**
+         * Transaction/Payment currently in progress, wait for callback from SDK
+         */
+        TRANSACTION_IN_PROGRESS(9),
+
+        /**
+         * Transaction/Payment not found, payment not taken
+         */
+        TRANSACTION_NOT_FOUND(10);
 
         int code;
 

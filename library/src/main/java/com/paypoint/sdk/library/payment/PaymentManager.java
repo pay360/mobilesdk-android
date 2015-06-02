@@ -34,6 +34,8 @@ import com.paypoint.sdk.library.utils.Timer;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.lang.ref.WeakReference;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -373,9 +375,11 @@ public class PaymentManager {
      */
     public void getPaymentStatus(String operationId) throws InvalidCredentialsException {
 
+        PaymentError error = null;
         switch (state) {
             case STATE_IDLE:
 
+                // call server endpoint to get transaction status
                 createService();
 
                 onSessionStart();
@@ -386,10 +390,18 @@ public class PaymentManager {
                 waitForNetworkConnection();
                 break;
             case STATE_SUSPENDED_FOR_3DS:
-                // TODO suspended - return straight away
+                // suspended waiting for 3DS to complete
+                error = new PaymentError();
+                error.setKind(PaymentError.Kind.PAYPOINT);
+                error.getPayPointError().setReasonCode(REASON_SUSPENDED_FOR_3D_SECURE);
+                executeCallback(error, false);
                 break;
             default:
-                // TODO in progress - return straight away
+                // payment in progress
+                error = new PaymentError();
+                error.setKind(PaymentError.Kind.PAYPOINT);
+                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_IN_PROGRESS);
+                executeCallback(error, false);
                 break;
         }
     }
@@ -420,7 +432,7 @@ public class PaymentManager {
     }
 
     /*
-    * State machine - no need to any synchronisation as all callbacks on the UI thread
+    * State machine - no need to for synchronisation as all callbacks on the UI thread
     */
     private void onEvent(Event event) {
 
@@ -444,6 +456,10 @@ public class PaymentManager {
         }
     }
 
+    /**
+     * Timeout or socket error
+     * @param state
+     */
     private void onEventResponseNotReceived(State state) {
         // only request status if waiting payment or resume response
         if (state == State.STATE_PAYMENT_WAITING_RESPONSE ||
@@ -459,6 +475,10 @@ public class PaymentManager {
         }
     }
 
+    /**
+     * Network connection made
+     * @param state
+     */
     private void onEventNetworkConnected(State state) {
 
         // network connected - send request
@@ -484,10 +504,18 @@ public class PaymentManager {
         }
     }
 
+    /**
+     * Session timeout
+     * @param state
+     */
     private void onEventSessionTimeout(State state) {
 
         if (state != State.STATE_IDLE) {
             PaymentError error = new PaymentError();
+            this is not correct - use paypoint error + specific timeout reason code - hmm but this will be called
+            if timeout before getting network connection so could be a network issue...maybe check the state and return network
+            if waiting for network else a paypoint exception
+
             error.setKind(PaymentError.Kind.NETWORK);
 
             executeCallback(error);
@@ -524,7 +552,6 @@ public class PaymentManager {
             sessionTimer.cancel();
         }
     }
-
 
     /**
      * Validates the payment request.
@@ -599,6 +626,7 @@ public class PaymentManager {
          */
         @Override
         public void onNext(MakePaymentResponse paymentResponse) {
+
             if (paymentResponse != null &&
                !paymentResponse.isFailed()) {
 
@@ -695,30 +723,35 @@ public class PaymentManager {
         public void onError(Throwable e) {
 
             PaymentError error = new PaymentError();
-            error.setKind(PaymentError.Kind.NETWORK);
+            error.setKind(PaymentError.Kind.PAYPOINT);
 
             if (e instanceof RetrofitError) {
 
                 RetrofitError retrofitError = (RetrofitError)e;
 
-                // Kind.NETWORK - An IOException occurred while communicating to the server.
-                if (retrofitError.getKind() == RetrofitError.Kind.NETWORK) {
-
-                    // attempt to get status of transaction
-                    onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
-                } else {
-
-                    error.setKind(PaymentError.Kind.PAYPOINT);
-
-                    if (retrofitError.getResponse() != null) {
-                        int httpStatus = retrofitError.getResponse().getStatus();
-
-                        // TODO do we need to check if 404 from getStatus command - if so then payment not received - does
-                        if (state == State.STATE_STATUS_WAITING_RESPONSE &&
-                            httpStatus == 404) {
-                            // TODO what to do here??
-                            // create an errorreason
+                switch (retrofitError.getKind()) {
+                    // An IOException occurred while communicating to the server.
+                    case NETWORK:
+                        // if failed to connect the return straight away, no point in attempting
+                        // to read state of payment as we know the request never made it to the server
+                        if (retrofitError.getCause() instanceof ConnectException ||
+                            retrofitError.getCause() instanceof UnknownHostException) {
+                            error.setKind(PaymentError.Kind.NETWORK);
+                            need to ensure that SDK consistently returns error response so that
+                            app can work outif transaction has reached paypoint yet - check all callbacks
+                            executeCallback(error);
                         } else {
+                            // attempt to get status of transaction
+                            onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
+                        }
+                        break;
+
+                    // A non-200 HTTP status code was received from the server
+                    case HTTP:
+                        error.setKind(PaymentError.Kind.PAYPOINT);
+
+                        if (retrofitError.getResponse() != null) {
+                            int httpStatus = retrofitError.getResponse().getStatus();
 
                             error.getNetworkError().setHttpStatusCode(httpStatus);
 
@@ -732,25 +765,44 @@ public class PaymentManager {
                                 error.setCustomFields(paymentResponse.getCustomFields());
                             }
                         }
-                    }
-                    executeCallback(error);
-                }
+                        executeCallback(error);
 
+                        break;
+
+                    // An exception was thrown while (de)serializing a body
+                    case CONVERSION:
+                    // An internal error occurred while attempting to execute a request
+                    case UNEXPECTED:
+                    default:
+                        error.setKind(PaymentError.Kind.PAYPOINT);
+                        executeCallback(error);
+                        break;
+                }
             } else {
+                // something other than a Retrofit exception - not expecting this but need to handle
                 onEvent(Event.EVENT_RESPONSE_NOT_RECEIVED);
             }
         }
 
         @Override
         public void onCompleted() {
-
+            // nothing to do
         }
     }
 
     private void executeCallback(PaymentError error) {
+        executeCallback(error, true);
+    }
 
-        onSessionEnd();
+    private void executeCallback(PaymentSuccess success) {
+        executeCallback(success, true);
+    }
 
+    private void executeCallback(PaymentError error,  boolean endSession) {
+
+        if (endSession) {
+            onSessionEnd();
+        }
 
         if (callbackLocked) {
             // store callback for when the callee re-registers the callback
@@ -766,9 +818,11 @@ public class PaymentManager {
         }
     }
 
-    private void executeCallback(PaymentSuccess success) {
+    private void executeCallback(PaymentSuccess success, boolean endSession) {
 
-        onSessionEnd();
+        if (endSession) {
+            onSessionEnd();
+        }
 
         if (callbackLocked) {
             // store callback for when the callee re-registers the callback
