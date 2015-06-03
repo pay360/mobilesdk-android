@@ -16,8 +16,9 @@ import com.google.gson.GsonBuilder;
 import com.paypoint.sdk.library.ThreeDSActivity;
 import com.paypoint.sdk.library.device.DeviceManager;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
-import com.paypoint.sdk.library.exception.PaymentInProgressException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
+import com.paypoint.sdk.library.exception.TransactionInProgressException;
+import com.paypoint.sdk.library.exception.TransactionSuspendedFor3DSException;
 import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
@@ -319,15 +320,14 @@ public class PaymentManager {
      * @param request payment details
      * @throws PaymentValidationException incorrect payment details in the request.
      * Use {@link com.paypoint.sdk.library.exception.PaymentValidationException#getErrorCode()} to determine error
-     * @throws com.paypoint.sdk.library.exception.PaymentInProgressException payment is still in progress
      * @return unique identifier
      */
     public String makePayment(final PaymentRequest request)
-            throws PaymentValidationException, PaymentInProgressException, InvalidCredentialsException {
+            throws PaymentValidationException, InvalidCredentialsException, TransactionInProgressException {
 
         // fail fast if session still in progress
         if (state != State.STATE_IDLE) {
-            throw new PaymentInProgressException();
+           throw new TransactionInProgressException();
         }
 
         // ensure last payment is forgotten
@@ -346,7 +346,7 @@ public class PaymentManager {
                 .setDeviceInfo(deviceInfo)
                 .setTransaction(request.getTransaction())
                 .setPaymentMethod(new PaymentMethod().setCard(request.getCard())
-                .setBillingAddress(request.getAddress()))
+                        .setBillingAddress(request.getAddress()))
                 .setFinancialServices(request.getFinancialServices())
                 .setCustomer(request.getCustomer())
                 .setCustomFields(request.getCustomFields());
@@ -354,9 +354,6 @@ public class PaymentManager {
         // create a unique identifier for the payment operation which can be used by the app to query
         // the status
         operationId = UUID.randomUUID().toString();
-
-        // retry on failure
-//        reliableDeliveryEnabled = true;
 
         onSessionStart();
 
@@ -373,7 +370,8 @@ public class PaymentManager {
      * @param operationId
      * @throws InvalidCredentialsException
      */
-    public void getPaymentStatus(String operationId) throws InvalidCredentialsException {
+    public void getPaymentStatus(String operationId) throws InvalidCredentialsException,
+            TransactionInProgressException, TransactionSuspendedFor3DSException {
 
         PaymentError error = null;
         switch (state) {
@@ -390,19 +388,9 @@ public class PaymentManager {
                 waitForNetworkConnection();
                 break;
             case STATE_SUSPENDED_FOR_3DS:
-                // suspended waiting for 3DS to complete
-                error = new PaymentError();
-                error.setKind(PaymentError.Kind.PAYPOINT);
-                error.getPayPointError().setReasonCode(REASON_SUSPENDED_FOR_3D_SECURE);
-                executeCallback(error, false);
-                break;
+               throw new TransactionSuspendedFor3DSException();
             default:
-                // payment in progress
-                error = new PaymentError();
-                error.setKind(PaymentError.Kind.PAYPOINT);
-                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_IN_PROGRESS);
-                executeCallback(error, false);
-                break;
+               throw new TransactionInProgressException();
         }
     }
 
@@ -512,11 +500,9 @@ public class PaymentManager {
 
         if (state != State.STATE_IDLE) {
             PaymentError error = new PaymentError();
-            this is not correct - use paypoint error + specific timeout reason code - hmm but this will be called
-            if timeout before getting network connection so could be a network issue...maybe check the state and return network
-            if waiting for network else a paypoint exception
 
-            error.setKind(PaymentError.Kind.NETWORK);
+            error.setKind(PaymentError.Kind.PAYPOINT);
+            error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
 
             executeCallback(error);
         }
@@ -691,6 +677,8 @@ public class PaymentManager {
 
                 executeCallback(error);
             } else {
+                transactionId = paymentResponse.getTransactionId();
+
                 // show 3D secure in separate activity
                 Intent intent = new Intent(context, ThreeDSActivity.class);
                 intent.putExtra(ThreeDSActivity.EXTRA_ACS_URL, threeDSecure.getAcsUrl());
@@ -732,13 +720,15 @@ public class PaymentManager {
                 switch (retrofitError.getKind()) {
                     // An IOException occurred while communicating to the server.
                     case NETWORK:
-                        // if failed to connect the return straight away, no point in attempting
-                        // to read state of payment as we know the request never made it to the server
-                        if (retrofitError.getCause() instanceof ConnectException ||
-                            retrofitError.getCause() instanceof UnknownHostException) {
+                        // if failed to connect when making payment or resume then return straight away,
+                        // no point in attempting to read state of payment as we know the request
+                        // never made it to the server
+                        if ((state == State.STATE_PAYMENT_WAITING_RESPONSE ||
+                            state == State.STATE_RESUME_WAITING_RESPONSE) &&
+                            (retrofitError.getCause() instanceof ConnectException ||
+                            retrofitError.getCause() instanceof UnknownHostException)) {
+
                             error.setKind(PaymentError.Kind.NETWORK);
-                            need to ensure that SDK consistently returns error response so that
-                            app can work outif transaction has reached paypoint yet - check all callbacks
                             executeCallback(error);
                         } else {
                             // attempt to get status of transaction
@@ -875,7 +865,7 @@ public class PaymentManager {
 
             if (intent.getBooleanExtra(ThreeDSActivity.EXTRA_SUCCESS, false)) {
                 // 3DS successful - post to resume endpoint
-                transactionId = intent.getStringExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID);
+                String transactionId = intent.getStringExtra(ThreeDSActivity.EXTRA_TRANSACTION_ID);
                 String pares = intent.getStringExtra(ThreeDSActivity.EXTRA_PARES);
 
                 threeDSResumeRequest = new ThreeDSResumeRequest(pares);

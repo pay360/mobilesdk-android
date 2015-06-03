@@ -7,6 +7,5 @@ package com.paypoint.sdk.library.exception;
 /**
  * Payment validation error
  */
-public class PaymentInProgressException extends Exception {
-
+public class TransactionInProgressException extends Exception {
 }
