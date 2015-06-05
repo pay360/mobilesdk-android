@@ -56,11 +56,6 @@ public class PaymentError {
         UNKNOWN(-1),
 
         /**
-         * Operation successful as described
-         */
-        SUCCESS(0),
-
-        /**
          * Request was not correctly formed
          */
         INVALID(1),
@@ -81,9 +76,9 @@ public class PaymentError {
         UNAUTHORISED_REQUEST(4),
 
         /**
-         * The transaction was successfully submitted but failed to be processed correctly
+         * The transaction was declined by the server
          */
-        TRANSACTION_FAILED_TO_PROCESS(5),
+        TRANSACTION_DECLINED(5),
 
         /**
          * An internal server error occurred at PayPoint
@@ -91,7 +86,7 @@ public class PaymentError {
         SERVER_ERROR(6),
 
         /**
-         * Transaction/Payment not found, payment not taken
+         * Transaction not found on the server, payment not taken
          */
         TRANSACTION_NOT_FOUND(10);
 
@@ -145,7 +140,7 @@ public class PaymentError {
 
     public class PayPointError {
 
-        private ReasonCode reasonCode;
+        private ReasonCode reasonCode = ReasonCode.UNKNOWN;
 
         private String reasonMessage;
 

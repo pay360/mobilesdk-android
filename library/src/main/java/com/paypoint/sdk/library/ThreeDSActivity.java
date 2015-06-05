@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -238,7 +239,9 @@ public class ThreeDSActivity extends ActionBarActivity {
             intent.putExtra(EXTRA_CANCELLED, cancelled);
             intent.putExtra(EXTRA_SUCCESS, success);
 
-            sendBroadcast(intent);
+            LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
+
+            lbm.sendBroadcast(intent);
 
             // clean up the timers if still running
             if (sessionTimerHandler != null) {

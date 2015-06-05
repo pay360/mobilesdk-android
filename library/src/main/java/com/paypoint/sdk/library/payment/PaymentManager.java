@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -62,12 +63,11 @@ public class PaymentManager {
 
     private static final int HTTP_TIMEOUT_CONNECTION                = 10; // 10s
 
-    private static final int TIMEOUT_RESPONSE_PAYMENT          = 30; // 30s
-    private static final int TIMEOUT_RESPONSE_RESUME           = 30; // 30s
-    private static final int TIMEOUT_RESPONSE_STATUS           = 5; // 5s
+    private static final int TIMEOUT_RESPONSE_PAYMENT               = 30; // 30s
+    private static final int TIMEOUT_RESPONSE_RESUME                = 30; // 30s
+    private static final int TIMEOUT_RESPONSE_STATUS                = 5; // 5s
 
-    private static final int DEFAULT_SESSION_TIMEOUT           = 60; // 60s
-
+    private static final int DEFAULT_SESSION_TIMEOUT                = 60; // 60s
 
     private static final int REASON_SUSPENDED_FOR_3D_SECURE         = 7;
     private static final int REASON_SUSPENDED_FOR_CLIENT_REDIRECT   = 8;
@@ -104,7 +104,6 @@ public class PaymentManager {
     private static PaymentManager instance;
 
     private class CallbackPending {
-
         private boolean isError;
         private PaymentSuccess paymentSuccess;
         private PaymentError paymentError;
@@ -147,12 +146,14 @@ public class PaymentManager {
         // no need to unregister receivers as PaymentManager is a singleton as thus has the
         // same lifetime as the app hence won't not unregistering won't cause any leaks
 
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this.context);
+
         // register to receive events from 3DS activity
-        this.context.registerReceiver(new ThreeDSecureReceiver(),
+        lbm.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
         // register to receive network connectivity events
-        this.context.registerReceiver(new NetworkConnectivityReceiver(),
+        lbm.registerReceiver(new NetworkConnectivityReceiver(),
                 new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         deviceManager = new DeviceManager(this.context);
@@ -667,9 +668,9 @@ public class PaymentManager {
                         // no point in attempting to read state of payment as we know the request
                         // never made it to the server
                         if ((state == State.STATE_PAYMENT_WAITING_RESPONSE ||
-                                state == State.STATE_RESUME_WAITING_RESPONSE) &&
-                                (retrofitError.getCause() instanceof ConnectException ||
-                                        retrofitError.getCause() instanceof UnknownHostException)) {
+                             state == State.STATE_RESUME_WAITING_RESPONSE) &&
+                            (retrofitError.getCause() instanceof ConnectException ||
+                             retrofitError.getCause() instanceof UnknownHostException)) {
 
                             error.setKind(PaymentError.Kind.NETWORK);
                             executeCallback(error);
@@ -773,9 +774,11 @@ public class PaymentManager {
                 if (state == State.STATE_STATUS_WAITING_RESPONSE) {
                     PaymentError error = new PaymentError();
                     error.setKind(PaymentError.Kind.PAYPOINT);
-                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_FAILED_TO_PROCESS);
 
-                    // TODO
+                    // TODO is TRANSACTION_DECLINED the correct code?
+                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_DECLINED);
+
+                    // TODO make a note that reason message is just for debugging, shouldn't just display it within the app
 //                    error.getPayPointError().setReasonMessage(??);
 
                     executeCallback(error);
@@ -898,22 +901,13 @@ public class PaymentManager {
 
                 threeDSResumeRequest = new ThreeDSResumeRequest(pares);
 
-                try {
-                    // restart the session timer
-                    sessionTimer.reset();
+                // restart the session timer
+                sessionTimer.reset();
 
-                    setState(state.STATE_RESUME_WAITING_NETWORK);
+                setState(state.STATE_RESUME_WAITING_NETWORK);
 
-                    // wait for network connection - this returns straightaway
-                    waitForNetworkConnection();
-
-                } catch (Exception e) {
-                    PaymentError error = new PaymentError();
-                    error.setKind(PaymentError.Kind.PAYPOINT);
-                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.UNKNOWN);
-
-                    executeCallback(error);
-                }
+                // wait for network connection - this returns straightaway
+                waitForNetworkConnection();
             } else {
                 // 3DS failure
                 PaymentError error = new PaymentError();
