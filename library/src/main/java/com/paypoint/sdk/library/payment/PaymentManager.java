@@ -138,6 +138,10 @@ public class PaymentManager {
         // private as a singleton
     }
 
+    private static void TEST_resetInstance() {
+        instance = null;
+    }
+
     private PaymentManager(Context context) {
         // use the application context - DO NOT HOLD ONTO AN ACTIVITY CONTEXT as PaymentManager
         // is a singleton an may\will outlast the activity leading to memory leaks

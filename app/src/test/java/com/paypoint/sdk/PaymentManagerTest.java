@@ -31,6 +31,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowHandler;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -63,7 +64,13 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private String url = "http://localhost:5000";
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+
+        // reset singleton for each test - required by test which call sendBroadcast
+        // invoke test method by reflection as don't want to declare resetInstance as public
+        Method m = PaymentManager.class.getDeclaredMethod("TEST_resetInstance", null);
+        m.setAccessible(true); //if security settings allow this
+        m.invoke(null, null);
 
         pm = PaymentManager.getInstance(Robolectric.application);
 
@@ -750,104 +757,100 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         Assert.assertTrue(success);
     }
 
-    // TODO these tests seem to run in debug but not when part of the suite in release - seems
-    // TODO to be due to sendBroadcast not firing
+    @Test
+    public void testReliableDelivery3DSSuccess() throws Exception {
 
-//    @Test
-//    public void testReliableDelivery3DSSuccess() throws Exception {
-//
-//        responseTimeout = 5;
-//
-//        pm.setSessionTimeout(responseTimeout);
-//
-//        // "9900000000020604" will simulate a network failure on a 3DS resume which takes 5 seconds to process
-//        card.setPan("9900000000020604");
-//
-//        makePayment();
-//
-//        // not expecting callback as suspended for 3DS
-//        Assert.assertFalse(success);
-//
-//        // now check get payment status
-//        try {
-//            pm.getPaymentStatus(operationId);
-//            Assert.fail();
-//        } catch (TransactionSuspendedFor3DSException e) {
-//            // expected
-//        }
-//
-//        // broadcast 3DS event to kick manager to continue with resume
-//        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
-//
-//        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_AFTER_RESUME_DELAY");
-//        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
-//
-//        // now wait for successful payment response
-//        success = false;
-//        responseReceived = false;
-//
-//        // this should now kick of the resume which will fail once then succeed
-//        Robolectric.getShadowApplication().getApplicationContext().sendBroadcast(intent);
-//
-//        try {
-//            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
-//        } catch (Throwable e) {
-//            success = false;
-//        }
-//
-//        Assert.assertTrue(true);
-//    }
+        responseTimeout = 5;
 
-//    @Test
-//    public void testReliableDelivery3DSFail() throws Exception {
-//
-//        responseTimeout = 10;
-//
-//        pm.setSessionTimeout(responseTimeout);
-//
-//        // "9900000000020703" will simulate a network failure on a 3DS resume which takes 5 seconds to process and then declines
-//        card.setPan("9900000000020703");
-//
-//        makePayment();
-//
-//        // no expecting callback as suspended for 3DS
-//        Assert.assertFalse(success);
-//
-//        // now check get payment status
-//        try {
-//            pm.getTransactionStatus(operationId);
-//            Assert.fail();
-//        } catch (TransactionSuspendedFor3DSException e) {
-//            // expected
-//        }
-//
-//        // broadcast 3DS event to kick manager to continue with resume
-//        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
-//
-//        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_AFTER_RESUME_DELAY_DECLINE");
-//        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
-//
-//        // now wait for successful payment response
-//        success = false;
-//        responseReceived = false;
-//
-//        // this should now kick of the resume which will fail once then succeed
-//        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(Robolectric.application);
-//        lbm.sendBroadcast(intent);
-//
-//        ShadowHandler.idleMainLooper();
-//
-//        try {
-//            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
-//        } catch (Throwable e) {
-//            success = false;
-//        }
-//
-//        Assert.assertFalse(success);
-//
-//        pm.getTransactionStatus(operationId);
-//    }
-//
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000020604" will simulate a network failure on a 3DS resume which takes 5 seconds to process
+        card.setPan("9900000000020604");
+
+        makePayment();
+
+        // not expecting callback as suspended for 3DS
+        Assert.assertFalse(success);
+
+        // now check get payment status
+        try {
+            pm.getTransactionStatus(operationId);
+            Assert.fail();
+        } catch (TransactionSuspendedFor3DSException e) {
+            // expected
+        }
+
+        // broadcast 3DS event to kick manager to continue with resume
+        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
+
+        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_AFTER_RESUME_DELAY");
+        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
+
+        // now wait for successful payment response
+        success = false;
+        responseReceived = false;
+
+        // this should now kick of the resume which will fail for 5s then succeed
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(Robolectric.application);
+        lbm.sendBroadcast(intent);
+
+        try {
+            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            success = false;
+        }
+
+        Assert.assertTrue(true);
+    }
+
+    @Test
+    public void testReliableDelivery3DSFail() throws Exception {
+
+        responseTimeout = 10;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000020703" will simulate a network failure on a 3DS resume which takes 5 seconds to process and then declines
+        card.setPan("9900000000020703");
+
+        makePayment();
+
+        // no expecting callback as suspended for 3DS
+        Assert.assertFalse(success);
+
+        // now check get payment status
+        try {
+            pm.getTransactionStatus(operationId);
+            Assert.fail();
+        } catch (TransactionSuspendedFor3DSException e) {
+            // expected
+        }
+
+        // broadcast 3DS event to kick manager to continue with resume
+        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
+
+        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_AFTER_RESUME_DELAY_DECLINE");
+        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
+
+        // now wait for successful payment response
+        success = false;
+        responseReceived = false;
+
+        // this should now kick of the resume which will fail for 5s then decline
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(Robolectric.application);
+        lbm.sendBroadcast(intent);
+
+        try {
+            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            success = false;
+        }
+
+        Assert.assertFalse(success);
+
+        pm.getTransactionStatus(operationId);
+    }
+
 //    @Test
 //    public void testReliableDelivery3DSFail() throws Exception {
 //

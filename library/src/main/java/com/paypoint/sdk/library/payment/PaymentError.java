@@ -87,6 +87,8 @@ public class PaymentError {
 
         /**
          * Whether the transaction completed e.g. success\fail or is in in unknown state
+         * If true then get the status of the current transaction otherwise it is safe to make
+         * the payment again without this resulting in duplicates
          * @return true if transaction in unknown state
          */
         public boolean isIndeterminate() {
@@ -121,6 +123,10 @@ public class PaymentError {
         return reasonCode;
     }
 
+    /**
+     * The reason for failure
+     * @param reasonCode enumerated error code
+     */
     public void setReasonCode(int reasonCode) {
         this.reasonCode = ReasonCode.getReasonCode(reasonCode);
     }
@@ -129,6 +135,11 @@ public class PaymentError {
         this.reasonCode = reasonCode;
     }
 
+    /**
+     * Returns details about what went wrong - this should not be displayed to the user
+     * please formulate your own messages
+     * @return verbose error details
+     */
     public String getReasonMessage() {
         return reasonMessage;
     }
