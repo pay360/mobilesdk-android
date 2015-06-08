@@ -1,6 +1,7 @@
 package com.paypoint.sdk;
 
 import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.paypoint.sdk.library.ThreeDSActivity;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
@@ -162,7 +163,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
         Assert.assertFalse(success);
 
-        checkReasonCode(PaymentError.ReasonCode.TRANSACTION_FAILED_TO_PROCESS);
+        checkReasonCode(PaymentError.ReasonCode.TRANSACTION_DECLINED);
     }
 
 //    @Test
@@ -690,35 +691,35 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         Assert.assertNotNull(responseError);
     }
 
-//    @Test
-//    public void testGetStatusSuccess() throws Exception {
-//
-//        // first make successful payment
-//        makePayment();
-//
-//        Assert.assertTrue(success);
-//
-//        // now check status of payment - should also be successful
-//        getPaymentStatus();
-//
-//        Assert.assertTrue(success);
-//    }
-//
-//    @Test
-//    public void testGetStatusFailure() throws Exception {
-//
-//        // first make failed payment
-//        card.setPan("9900 0000 0000 5282");
-//
-//        makePayment();
-//
-//        Assert.assertFalse(success);
-//
-//        // now check status of payment - should also return failed
-//        getPaymentStatus();
-//
-//        Assert.assertFalse(success);
-//    }
+    @Test
+    public void testGetStatusSuccess() throws Exception {
+
+        // first make successful payment
+        makePayment();
+
+        Assert.assertTrue(success);
+
+        // now check status of payment - should also be successful
+        getPaymentStatus();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testGetStatusFailure() throws Exception {
+
+        // first make failed payment
+        card.setPan("9900 0000 0000 5282");
+
+        makePayment();
+
+        Assert.assertFalse(success);
+
+        // now check status of payment - should also return failed
+        getPaymentStatus();
+
+        Assert.assertFalse(success);
+    }
 
     @Test
     public void testGetStatusDuringPayment() throws Exception {
@@ -733,7 +734,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
         // try getting the status at this point - should throw exception
         try {
-            pm.getPaymentStatus(operationId);
+            pm.getTransactionStatus(operationId);
             Assert.fail();
         } catch (TransactionInProgressException e) {
             // expected
@@ -749,7 +750,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         Assert.assertTrue(success);
     }
 
-    // TODO these two tests seem to run in debug but not when part of the suite in release - seems
+    // TODO these tests seem to run in debug but not when part of the suite in release - seems
     // TODO to be due to sendBroadcast not firing
 
 //    @Test
@@ -789,18 +790,18 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 //        Robolectric.getShadowApplication().getApplicationContext().sendBroadcast(intent);
 //
 //        try {
-//            await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
+//            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
 //        } catch (Throwable e) {
 //            success = false;
 //        }
 //
-//        Assert.assertTrue(success);
+//        Assert.assertTrue(true);
 //    }
 
 //    @Test
 //    public void testReliableDelivery3DSFail() throws Exception {
 //
-//        responseTimeout = 5;
+//        responseTimeout = 10;
 //
 //        pm.setSessionTimeout(responseTimeout);
 //
@@ -814,7 +815,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 //
 //        // now check get payment status
 //        try {
-//            pm.getPaymentStatus(operationId);
+//            pm.getTransactionStatus(operationId);
 //            Assert.fail();
 //        } catch (TransactionSuspendedFor3DSException e) {
 //            // expected
@@ -831,16 +832,59 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 //        responseReceived = false;
 //
 //        // this should now kick of the resume which will fail once then succeed
+//        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(Robolectric.application);
+//        lbm.sendBroadcast(intent);
+//
+//        ShadowHandler.idleMainLooper();
+//
+//        try {
+//            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
+//        } catch (Throwable e) {
+//            success = false;
+//        }
+//
+//        Assert.assertFalse(success);
+//
+//        pm.getTransactionStatus(operationId);
+//    }
+//
+//    @Test
+//    public void testReliableDelivery3DSFail() throws Exception {
+//
+//        responseTimeout = 5;
+//
+//        pm.setSessionTimeout(responseTimeout);
+//
+//        // "9900000000020505" will simulate a network failure on the request to a 3DS resume (payment will not proceed);
+//        card.setPan("9900000000020505");
+//
+//        makePayment();
+//
+//        // no expecting callback as suspended for 3DS
+//        Assert.assertFalse(success);
+//
+//        // broadcast 3DS event to kick manager to continue with resume
+//        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
+//
+//        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_BEFORE_RESUME");
+//        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
+//
+//        // now wait for successful payment response
+//        success = false;
+//        responseReceived = false;
+//
+//        // this should now kick of the resume which will fail once then succeed
 //        Robolectric.getShadowApplication().getApplicationContext().sendBroadcast(intent);
 //
 //        try {
-//            await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
+//            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
 //        } catch (Throwable e) {
 //            success = false;
 //        }
 //
 //        Assert.assertFalse(success);
 //    }
+
 
     private void makePayment() throws Exception {
         success = false;
@@ -855,18 +899,18 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         }
     }
 
-//    private void getPaymentStatus() throws Exception {
-//        success = false;
-//        responseReceived = false;
-//
-//        pm.getPaymentStatus(operationId);
-//
-//        try {
-//            await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
-//        } catch (Throwable e) {
-//            success = false;
-//        }
-//    }
+    private void getPaymentStatus() throws Exception {
+        success = false;
+        responseReceived = false;
+
+        pm.getTransactionStatus(operationId);
+
+        try {
+            await().atMost(responseTimeout + 5, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            success = false;
+        }
+    }
 
     @Override
     public void paymentSucceeded(PaymentSuccess response) {
@@ -898,22 +942,10 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         }
     }
 
-    private void checkNetwork(Integer expectedStatusCode) {
-        Assert.assertEquals(PaymentError.Kind.NETWORK, responseError.getKind());
-        Assert.assertNotNull(responseError);
-        Assert.assertNotNull(responseError.getNetworkError());
-
-        if (expectedStatusCode != null) {
-            Assert.assertEquals(expectedStatusCode.intValue(), responseError.getNetworkError().getHttpStatusCode());
-        }
-    }
-
     private void checkReasonCode(PaymentError.ReasonCode expected) {
-        Assert.assertEquals(PaymentError.Kind.PAYPOINT, responseError.getKind());
         Assert.assertNotNull(responseError);
-        Assert.assertNotNull(responseError.getPayPointError());
         Assert.assertEquals(expected,
-                responseError.getPayPointError().getReasonCode());
+                responseError.getReasonCode());
     }
 
 }

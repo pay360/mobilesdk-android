@@ -327,7 +327,7 @@ public class PaymentManager {
      * Use {@link com.paypoint.sdk.library.exception.PaymentValidationException#getErrorCode()} to determine error
      * @throws InvalidCredentialsException missing token, installation id or server url
      * @throws TransactionInProgressException a transaction is in flight, please wait for the callback
-     * @return unique identifier - use this to query payment status in {@link #getPaymentStatus(String)}
+     * @return unique identifier - use this to query payment status in {@link #getTransactionStatus(String)}
      */
     public String makePayment(final PaymentRequest request)
             throws PaymentValidationException, InvalidCredentialsException, TransactionInProgressException {
@@ -377,7 +377,7 @@ public class PaymentManager {
      * @param operationId - identifier returned from {@link #makePayment(PaymentRequest)}
      * @throws InvalidCredentialsException missing token, installation id or server url
      */
-    public void getPaymentStatus(String operationId) throws InvalidCredentialsException,
+    public void getTransactionStatus(String operationId) throws InvalidCredentialsException,
             TransactionInProgressException, TransactionSuspendedFor3DSException {
 
         PaymentError error = null;
@@ -513,12 +513,10 @@ public class PaymentManager {
                 state == State.STATE_STATUS_WAITING_NETWORK) {
                 // timeout before network connection
 
-                error.setKind(PaymentError.Kind.NETWORK);
+                error.setReasonCode(PaymentError.ReasonCode.NETWORK_NO_CONNECTION);
                 executeCallback(error);
             } else {
-                error.setKind(PaymentError.Kind.PAYPOINT);
-                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
-
+                error.setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
                 executeCallback(error);
             }
         }
@@ -655,7 +653,6 @@ public class PaymentManager {
         public void onError(Throwable e) {
 
             PaymentError error = new PaymentError();
-            error.setKind(PaymentError.Kind.PAYPOINT);
 
             if (e instanceof RetrofitError) {
 
@@ -672,7 +669,7 @@ public class PaymentManager {
                             (retrofitError.getCause() instanceof ConnectException ||
                              retrofitError.getCause() instanceof UnknownHostException)) {
 
-                            error.setKind(PaymentError.Kind.NETWORK);
+                            error.setReasonCode(PaymentError.ReasonCode.NETWORK_NO_CONNECTION);
                             executeCallback(error);
                         } else {
                             // attempt to get status of transaction
@@ -682,20 +679,16 @@ public class PaymentManager {
 
                     // A non-200 HTTP status code was received from the server
                     case HTTP:
-                        error.setKind(PaymentError.Kind.PAYPOINT);
 
                         if (retrofitError.getResponse() != null) {
-                            int httpStatus = retrofitError.getResponse().getStatus();
-
-                            error.getNetworkError().setHttpStatusCode(httpStatus);
 
                             // attempt to parse JSON in the response
                             MakePaymentResponse paymentResponse = parseErrorResponse(retrofitError);
 
                             if (paymentResponse != null) {
 
-                                error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
-                                error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+                                error.setReasonCode(paymentResponse.getReasonCode());
+                                error.setReasonMessage(paymentResponse.getReasonMessage());
                                 error.setCustomFields(paymentResponse.getCustomFields());
                             }
                         }
@@ -708,7 +701,6 @@ public class PaymentManager {
                         // An internal error occurred while attempting to execute a request
                     case UNEXPECTED:
                     default:
-                        error.setKind(PaymentError.Kind.PAYPOINT);
                         executeCallback(error);
                         break;
                 }
@@ -745,11 +737,10 @@ public class PaymentManager {
         private void onPaymentFailed(MakePaymentResponse paymentResponse) {
             // payment failed
             PaymentError error = new PaymentError();
-            error.setKind(PaymentError.Kind.PAYPOINT);
 
             if (paymentResponse != null) {
-                error.getPayPointError().setReasonCode(paymentResponse.getReasonCode());
-                error.getPayPointError().setReasonMessage(paymentResponse.getReasonMessage());
+                error.setReasonCode(paymentResponse.getReasonCode());
+                error.setReasonMessage(paymentResponse.getReasonMessage());
                 error.setCustomFields(paymentResponse.getCustomFields());
             }
 
@@ -763,9 +754,8 @@ public class PaymentManager {
             if (threeDSecure == null ||
                 !threeDSecure.validateData()) {
                 PaymentError error = new PaymentError();
-                error.setKind(PaymentError.Kind.PAYPOINT);
-                error.getPayPointError().setReasonCode(PaymentError.ReasonCode.SERVER_ERROR);
-                error.getPayPointError().setReasonMessage("Missing 3D Secure credentials");
+                error.setReasonCode(PaymentError.ReasonCode.SERVER_ERROR);
+                error.setReasonMessage("Missing 3D Secure credentials");
 
                 executeCallback(error);
             } else {
@@ -773,13 +763,7 @@ public class PaymentManager {
                 // if this is in response to a get status then pass back error
                 if (state == State.STATE_STATUS_WAITING_RESPONSE) {
                     PaymentError error = new PaymentError();
-                    error.setKind(PaymentError.Kind.PAYPOINT);
-
-                    // TODO is TRANSACTION_DECLINED the correct code?
-                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_DECLINED);
-
-                    // TODO make a note that reason message is just for debugging, shouldn't just display it within the app
-//                    error.getPayPointError().setReasonMessage(??);
+                    error.setReasonCode(PaymentError.ReasonCode.NETWORK_ERROR_DURING_PROCESSING);
 
                     executeCallback(error);
                 } else {
@@ -911,20 +895,16 @@ public class PaymentManager {
             } else {
                 // 3DS failure
                 PaymentError error = new PaymentError();
-                error.setKind(PaymentError.Kind.PAYPOINT);
 
                 boolean cancelled = intent.getBooleanExtra(ThreeDSActivity.EXTRA_CANCELLED, false);
                 boolean timeout = intent.getBooleanExtra(ThreeDSActivity.EXTRA_HAS_TIMED_OUT, false);
 
                 if (cancelled) {
-                    error.getPayPointError().setReasonMessage("Transaction cancelled");
-                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.TRANSACTION_CANCELLED);
+                    error.setReasonCode(PaymentError.ReasonCode.TRANSACTION_CANCELLED_BY_USER);
                 } else if (timeout) {
-                    error.getPayPointError().setReasonMessage("3D Secure timed out");
-                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.THREE_D_SECURE_TIMEOUT);
+                    error.setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
                 } else {
-                    error.getPayPointError().setReasonMessage("3D Secure failed");
-                    error.getPayPointError().setReasonCode(PaymentError.ReasonCode.THREE_D_SECURE_ERROR);
+                    error.setReasonCode(PaymentError.ReasonCode.UNEXPECTED);
                 }
 
                 executeCallback(error);

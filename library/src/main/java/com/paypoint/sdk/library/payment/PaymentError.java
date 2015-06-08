@@ -15,85 +15,82 @@ public class PaymentError {
 
     private List<CustomField> customFields;
 
-    public enum Kind {
-
-        /**
-         * Transaction failed due to error at PayPoint server
-         */
-        PAYPOINT,
-
-        /**
-         * Transaction failed due to network error
-         */
-        NETWORK;
-    }
-
     public enum ReasonCode {
+
+        /**
+         * Network issue occurred during payment processing
+         */
+        NETWORK_ERROR_DURING_PROCESSING(-7, true),
+
+        /**
+         * Failed to communicate with payment server
+         */
+        NETWORK_NO_CONNECTION(-6, false),
 
         /**
          * Transaction not returned in given timeout period
          */
-        TRANSACTION_TIMED_OUT(-5),
+        TRANSACTION_TIMED_OUT(-5, true),
 
         /**
          * Transaction cancelled by user
          */
-        TRANSACTION_CANCELLED(-4),
+        TRANSACTION_CANCELLED_BY_USER(-4, false),
 
         /**
-         * Timeout waiting for 3D Secure
+         * An unexpected error
          */
-        THREE_D_SECURE_TIMEOUT(-3),
-
-        /**
-         * Error processing 3D Secure
-         */
-        THREE_D_SECURE_ERROR(-2),
-
-        /**
-         * Unknown error
-         */
-        UNKNOWN(-1),
+        UNEXPECTED(-1, true),
 
         /**
          * Request was not correctly formed
          */
-        INVALID(1),
+        INVALID(1, false),
 
         /**
          * The presented API token was not valid, or the wrong type of authentication was used
          */
-        AUTHENTICATION_FAILED(2),
+        AUTHENTICATION_FAILED(2, false),
 
         /**
          * Get a new token
          */
-        CLIENT_TOKEN_EXPIRED(3),
+        CLIENT_TOKEN_EXPIRED(3, false),
 
         /**
          * The token was valid, but does not grant you access to use the specified feature
          */
-        UNAUTHORISED_REQUEST(4),
+        UNAUTHORISED_REQUEST(4, false),
 
         /**
          * The transaction was declined by the server
          */
-        TRANSACTION_DECLINED(5),
+        TRANSACTION_DECLINED(5, false),
 
         /**
          * An internal server error occurred at PayPoint
          */
-        SERVER_ERROR(6),
+        SERVER_ERROR(6, true),
 
         /**
          * Transaction not found on the server, payment not taken
          */
-        TRANSACTION_NOT_FOUND(10);
+        TRANSACTION_NOT_FOUND(10, false);
 
         int code;
+        boolean indeterminate;
 
-        ReasonCode(int code) {
+        ReasonCode(int code, boolean indeterminate) {
             this.code = code;
+            this.indeterminate = indeterminate;
+        }
+
+        /**
+         * Whether the transaction completed e.g. success\fail or is in in unknown state
+         * @return true if transaction in unknown state
+         */
+        public boolean isIndeterminate() {
+            return indeterminate;
         }
 
         public static ReasonCode getReasonCode(int code) {
@@ -104,30 +101,8 @@ public class PaymentError {
                 }
             }
 
-            return UNKNOWN;
+            return UNEXPECTED;
         }
-    }
-
-    private Kind kind;
-
-    private PayPointError payPointError = new PayPointError();
-
-    private NetworkError networkError = new NetworkError();
-
-    public Kind getKind() {
-        return kind;
-    }
-
-    protected void setKind(Kind kind) {
-        this.kind = kind;
-    }
-
-    public PayPointError getPayPointError() {
-        return payPointError;
-    }
-
-    public NetworkError getNetworkError() {
-        return networkError;
     }
 
     public List<CustomField> getCustomFields() {
@@ -138,43 +113,27 @@ public class PaymentError {
         this.customFields = customFields;
     }
 
-    public class PayPointError {
+    private ReasonCode reasonCode = ReasonCode.UNEXPECTED;
 
-        private ReasonCode reasonCode = ReasonCode.UNKNOWN;
+    private String reasonMessage;
 
-        private String reasonMessage;
-
-        public ReasonCode getReasonCode() {
-            return reasonCode;
-        }
-
-        public void setReasonCode(int reasonCode) {
-            this.reasonCode = ReasonCode.getReasonCode(reasonCode);
-        }
-
-        public void setReasonCode(ReasonCode reasonCode) {
-            this.reasonCode = reasonCode;
-        }
-
-        public String getReasonMessage() {
-            return reasonMessage;
-        }
-
-        public void setReasonMessage(String reasonMessage) {
-            this.reasonMessage = reasonMessage;
-        }
+    public ReasonCode getReasonCode() {
+        return reasonCode;
     }
 
-    public class NetworkError {
+    public void setReasonCode(int reasonCode) {
+        this.reasonCode = ReasonCode.getReasonCode(reasonCode);
+    }
 
-        private int httpStatusCode;
+    public void setReasonCode(ReasonCode reasonCode) {
+        this.reasonCode = reasonCode;
+    }
 
-        public int getHttpStatusCode() {
-            return httpStatusCode;
-        }
+    public String getReasonMessage() {
+        return reasonMessage;
+    }
 
-        public void setHttpStatusCode(int httpStatusCode) {
-            this.httpStatusCode = httpStatusCode;
-        }
+    public void setReasonMessage(String reasonMessage) {
+        this.reasonMessage = reasonMessage;
     }
 }
