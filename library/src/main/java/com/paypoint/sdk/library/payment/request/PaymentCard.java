@@ -30,21 +30,41 @@ public class PaymentCard {
     @SerializedName("cardHolderName")
     private String cardHolderName;
 
+    /**
+     * Set the card PAM
+     * @param pan card PAN\number
+     * @return
+     */
     public PaymentCard setPan(String pan) {
         this.pan = StringUtils.deleteWhitespace(pan);
         return this;
     }
 
+    /**
+     * Set the card CV2
+     * @param cv2 3-4 digits
+     * @return
+     */
     public PaymentCard setCv2(String cv2) {
         this.cv2 = StringUtils.deleteWhitespace(cv2);
         return this;
     }
 
+    /**
+     * Set the card expiry
+     * @param expiryDate card expiry MMYY e.g. 0216 for February 2016
+     * @return
+     */
     public PaymentCard setExpiryDate(String expiryDate) {
         this.expiryDate = StringUtils.deleteWhitespace(expiryDate);
         return this;
     }
 
+    /**
+     * Set the cardholder
+     * @param cardHolderName  name as written on the card
+     * @return
+     */
     public PaymentCard setCardHolderName(String cardHolderName) {
         this.cardHolderName = StringUtils.deleteWhitespace(cardHolderName);
         return this;
