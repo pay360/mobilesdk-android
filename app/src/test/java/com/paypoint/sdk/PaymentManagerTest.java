@@ -179,7 +179,6 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     @Test
     public void testCardWaitFail() throws Exception {
 
-
         responseTimeout = 1;
 
         pm.setSessionTimeout(responseTimeout);

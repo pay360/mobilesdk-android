@@ -347,7 +347,7 @@ public class PaymentManager {
      * Use {@link com.paypoint.sdk.library.exception.PaymentValidationException#getErrorCode()} to determine error
      * @throws InvalidCredentialsException missing token, installation id or server url
      * @throws TransactionInProgressException a transaction is in flight, please wait for the callback
-     * @return unique identifier - use this to query payment status in {@link #getTransactionStatus(String)}
+     * @return unique identifier - use this to query transaction status in {@link #getTransactionStatus(String)}
      */
     public String makePayment(final PaymentRequest request)
             throws PaymentValidationException, InvalidCredentialsException, TransactionInProgressException {
@@ -393,9 +393,13 @@ public class PaymentManager {
     }
 
     /**
-     * Get the status of a payment
+     * Get the status of a transaction
      * @param operationId - identifier returned from {@link #makePayment(PaymentRequest)}
      * @throws InvalidCredentialsException missing token, installation id or server url
+     * @throws TransactionInProgressException if a transaction is currently in progress - try again
+     * when the SDK has executed the callback
+     * @throws TransactionSuspendedFor3DSException the SDK is waiting for the user to complete 3D
+     * Secure authentication - tey again when the SDK has executed the callback
      */
     public void getTransactionStatus(String operationId) throws InvalidCredentialsException,
             TransactionInProgressException, TransactionSuspendedFor3DSException {
