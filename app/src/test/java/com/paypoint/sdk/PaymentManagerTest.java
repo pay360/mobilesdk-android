@@ -71,7 +71,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         // invoke test method by reflection as don't want to declare resetInstance as public
         Method m = PaymentManager.class.getDeclaredMethod("TEST_resetInstance", null);
         m.setAccessible(true); //if security settings allow this
-        m.invoke(null, null);
+        m.invoke(null, (Object[])null);
 
         pm = PaymentManager.getInstance(Robolectric.application);
 

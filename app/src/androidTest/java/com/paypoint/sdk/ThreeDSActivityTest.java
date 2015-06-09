@@ -12,6 +12,7 @@ import android.provider.Settings;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
+import android.support.v4.content.LocalBroadcastManager;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.InstrumentationTestCase;
 import android.text.TextUtils;
@@ -33,7 +34,7 @@ import static com.jayway.awaitility.Awaitility.await;
 
 public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeDSActivity> {
 
-    private ThreeDSActivity activity;
+    private LocalBroadcastManager lbm;
     private boolean responseReceived;
     private boolean success;
     private String pares;
@@ -60,7 +61,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         intent.putExtra(ThreeDSActivity.EXTRA_ALLOW_SELF_SIGNED_CERTS, true);
         setActivityIntent(intent);
 
-        activity = getActivity();
+        lbm = LocalBroadcastManager.getInstance(getActivity());
     }
 
     /**
@@ -72,7 +73,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         before("VALID_PAREQ_FAST_REDIR", 3600000);
 
         // register to receive event from 3DS activity
-        activity.registerReceiver(new ThreeDSecureReceiver(),
+        lbm.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
         // wait for 15 seconds for thread to become unblocked
@@ -94,7 +95,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         before("eJxVUttuwjAMfd9XVHxAk/RCAZmgQtHGAxuiPGyPURqNSvRC2q6wr59TWhhRIvnYybF9HFhcspP1o3SVFvl8xGw6WvAXOBy1UlGsZKMVh62qKvGtrDSZj+iwmONQ5lIWeOMRh124V2cOPRFHHtsBMkBk0PIo8pqDkOfl5p1PGfUoBdJDyJTeRNwLAsdx/QDIDUMuMsXdKLYGAmu1X0cf+/DTitdAujDIoslrfeUTZwxkANDoEz/WdTkjpG1bO+sJ0G3LIgNi4kAehe0aY1XId0kTvo3C9n4Om+s2Wv/icd+jrzkQcwMSUSuOGnjUZROLTme4/QmQzg8iM4Vw1mmFfd4glCZL+Bz77wNUXKtcXvnrcofdDAjUpSxyhTdQ1rsNiaokj0VWnpR10CKvhKxRcCzCBIA8mlq9Ge1ljaretMcB3gbpM3dqBtHFTJ4U5WM+ZV0iA4CY16SfMem/A1pP3+QPIfS8/w==", 3600000);
 
         // register to receive event from 3DS activity
-        activity.registerReceiver(new ThreeDSecureReceiver(),
+        lbm.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
         // wait for 15 seconds for thread to become unblocked
@@ -116,7 +117,7 @@ public class ThreeDSActivityTest extends ActivityInstrumentationTestCase2<ThreeD
         before("eJxVUttuwjAMfd9XVHxAk/RCAZmgQtHGAxuiPGyPURqNSvRC2q6wr59TWhhRIvnYybF9HFhcspP1o3SVFvl8xGw6WvAXOBy1UlGsZKMVh62qKvGtrDSZj+iwmONQ5lIWeOMRh124V2cOPRFHHtsBMkBk0PIo8pqDkOfl5p1PGfUoBdJDyJTeRNwLAsdx/QDIDUMuMsXdKLYGAmu1X0cf+/DTitdAujDIoslrfeUTZwxkANDoEz/WdTkjpG1bO+sJ0G3LIgNi4kAehe0aY1XId0kTvo3C9n4Om+s2Wv/icd+jrzkQcwMSUSuOGnjUZROLTme4/QmQzg8iM4Vw1mmFfd4glCZL+Bz77wNUXKtcXvnrcofdDAjUpSxyhTdQ1rsNiaokj0VWnpR10CKvhKxRcCzCBIA8mlq9Ge1ljaretMcB3gbpM3dqBtHFTJ4U5WM+ZV0iA4CY16SfMem/A1pP3+QPIfS8/w==", 5000);
 
         // register to receive event from 3DS activity
-        activity.registerReceiver(new ThreeDSecureReceiver(),
+        lbm.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
         // wait for 10 seconds for thread to become unblocked
