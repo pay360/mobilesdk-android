@@ -69,7 +69,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
         // reset singleton for each test - required by test which call sendBroadcast
         // invoke test method by reflection as don't want to declare resetInstance as public
-        Method m = PaymentManager.class.getDeclaredMethod("TEST_resetInstance", null);
+        Method m = PaymentManager.class.getDeclaredMethod("TEST_resetInstance", (Class<?>)null);
         m.setAccessible(true); //if security settings allow this
         m.invoke(null, (Object[])null);
 
