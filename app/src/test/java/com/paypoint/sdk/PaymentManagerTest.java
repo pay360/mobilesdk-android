@@ -176,21 +176,21 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         checkReasonCode(PaymentError.ReasonCode.TRANSACTION_DECLINED);
     }
 
-//    @Test
-//    public void testCardWaitFail() throws Exception {
-//
-//
-//        responseTimeout = 1;
-//
-//        pm.setSessionTimeout(responseTimeout);
-//
-//        // default is to wait 60s - this card returns after 2s
-//        card.setPan("9900000000000168");
-//
-//        makePayment();
-//
-//        Assert.assertFalse(success);
-//    }
+    @Test
+    public void testCardWaitFail() throws Exception {
+
+
+        responseTimeout = 1;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // default is to wait 60s - this card returns after 2s
+        card.setPan("9900000000000168");
+
+        makePayment();
+
+        Assert.assertFalse(success);
+    }
 
     @Test
     public void testCardWaitSuccess() throws Exception {
