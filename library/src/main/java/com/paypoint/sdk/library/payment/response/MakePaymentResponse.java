@@ -73,13 +73,13 @@ public class MakePaymentResponse {
     }
 
     public String getMerchantRef() {
-        String merchanttRef = null;
+        String merchantRef = null;
 
         if (transaction != null) {
-            merchanttRef = transaction.getMerchantReference();
+            merchantRef = transaction.getMerchantReference();
         }
 
-        return merchanttRef;
+        return merchantRef;
     }
 
     public String getLastFourDigits() {
@@ -116,7 +116,6 @@ public class MakePaymentResponse {
     public String getStatus() {
         String status = null;
 
-        // TODO check status or reasonCode?
         if (outcome != null) {
             status = outcome.getStatus();
         }
