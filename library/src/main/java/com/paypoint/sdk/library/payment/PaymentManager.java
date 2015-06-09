@@ -569,18 +569,8 @@ public class PaymentManager {
 
         if (state != State.STATE_IDLE) {
             PaymentError error = new PaymentError();
-
-            if (state == State.STATE_PAYMENT_WAITING_NETWORK ||
-                state == State.STATE_RESUME_WAITING_NETWORK ||
-                state == State.STATE_STATUS_WAITING_NETWORK) {
-                // timeout before network connection
-
-                error.setReasonCode(PaymentError.ReasonCode.NETWORK_NO_CONNECTION);
-                executeCallback(error);
-            } else {
-                error.setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
-                executeCallback(error);
-            }
+            error.setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
+            executeCallback(error);
         }
     }
 
