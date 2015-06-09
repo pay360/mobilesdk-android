@@ -60,6 +60,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private PaymentSuccess responseSuccess;
     private PaymentError responseError;
     private String operationId;
+    private long timestamp;
 
     private String url = "http://localhost:5000";
 
@@ -99,6 +100,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         pm.setUrl(url);
         pm.setCredentials(credentials);
         pm.registerPaymentCallback(this);
+
+        timestamp = System.currentTimeMillis();
     }
 
     @Test
@@ -670,7 +673,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     @Test
     public void testReliableDeliveryDelaySuccess() throws Exception {
 
-        responseTimeout = 60;
+        responseTimeout = 15;
 
         pm.setSessionTimeout(responseTimeout);
 
@@ -685,7 +688,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     @Test
     public void testReliableDeliveryDelayFail() throws Exception {
 
-        responseTimeout = 60;
+        responseTimeout = 15;
 
         pm.setSessionTimeout(responseTimeout);
 
@@ -760,7 +763,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     @Test
     public void testReliableDelivery3DSSuccess() throws Exception {
 
-        responseTimeout = 5;
+        responseTimeout = 10;
 
         pm.setSessionTimeout(responseTimeout);
 
@@ -795,7 +798,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         lbm.sendBroadcast(intent);
 
         try {
-            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
+            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
         } catch (Throwable e) {
             success = false;
         }
@@ -841,53 +844,110 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         lbm.sendBroadcast(intent);
 
         try {
-            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
+            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
         } catch (Throwable e) {
             success = false;
         }
 
         Assert.assertFalse(success);
 
-        pm.getTransactionStatus(operationId);
+        checkReasonCode(PaymentError.ReasonCode.TRANSACTION_DECLINED);
     }
 
-//    @Test
-//    public void testReliableDelivery3DSFail() throws Exception {
-//
-//        responseTimeout = 5;
-//
-//        pm.setSessionTimeout(responseTimeout);
-//
-//        // "9900000000020505" will simulate a network failure on the request to a 3DS resume (payment will not proceed);
-//        card.setPan("9900000000020505");
-//
-//        makePayment();
-//
-//        // no expecting callback as suspended for 3DS
-//        Assert.assertFalse(success);
-//
-//        // broadcast 3DS event to kick manager to continue with resume
-//        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
-//
-//        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_BEFORE_RESUME");
-//        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
-//
-//        // now wait for successful payment response
-//        success = false;
-//        responseReceived = false;
-//
-//        // this should now kick of the resume which will fail once then succeed
-//        Robolectric.getShadowApplication().getApplicationContext().sendBroadcast(intent);
-//
-//        try {
-//            await().atMost(15, TimeUnit.SECONDS).until(responseReceived());
-//        } catch (Throwable e) {
-//            success = false;
-//        }
-//
-//        Assert.assertFalse(success);
-//    }
+    @Test
+    public void testReliableDelivery3DSResponseFail() throws Exception {
 
+        responseTimeout = 10;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000020505" will simulate a network failure on the request to a 3DS resume (payment will not proceed);
+        card.setPan("9900000000020505");
+
+        makePayment();
+
+        // no expecting callback as suspended for 3DS
+        Assert.assertFalse(success);
+
+        // broadcast 3DS event to kick manager to continue with resume
+        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
+
+        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_BEFORE_RESUME");
+        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
+
+        // now wait for successful payment response
+        success = false;
+        responseReceived = false;
+
+        // this should now kick of the resume which will fail for 5s then decline
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(Robolectric.application);
+        lbm.sendBroadcast(intent);
+
+        try {
+            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            success = false;
+        }
+
+        Assert.assertFalse(success);
+
+        checkReasonCode(PaymentError.ReasonCode.NETWORK_ERROR_DURING_PROCESSING);
+    }
+
+    @Test
+    public void testReliableDelivery3DSResponseSuccess() throws Exception {
+
+        responseTimeout = 10;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000020406" will simulate a network failure on the response to a 3DS resume (payment will proceed)
+        card.setPan("9900000000020406");
+
+        makePayment();
+
+        // no expecting callback as suspended for 3DS
+        Assert.assertFalse(success);
+
+        // broadcast 3DS event to kick manager to continue with resume
+        Intent intent = new Intent(ThreeDSActivity.ACTION_COMPLETED);
+
+        intent.putExtra(ThreeDSActivity.EXTRA_PARES, "VALID_PARES_FAIL_AFTER_RESUME");
+        intent.putExtra(ThreeDSActivity.EXTRA_SUCCESS, true);
+
+        // now wait for successful payment response
+        success = false;
+        responseReceived = false;
+
+        // this should now kick of the resume which will fail for 5s then decline
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(Robolectric.application);
+        lbm.sendBroadcast(intent);
+
+        try {
+            await().atMost(10, TimeUnit.SECONDS).until(responseReceived());
+        } catch (Throwable e) {
+            success = false;
+        }
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
+    public void testSessionTimeout() throws Exception {
+
+        responseTimeout = 2;
+
+        pm.setSessionTimeout(responseTimeout);
+
+        // "9900000000000275" will simluate a network failure on a transaction which takes 5 seconds to process
+        card.setPan("9900000000000275");
+
+        makePayment();
+
+        Assert.assertFalse(success);
+
+        checkReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
+    }
 
     private void makePayment() throws Exception {
         success = false;
@@ -932,6 +992,10 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private Callable<Boolean> responseReceived() {
         return new Callable<Boolean>() {
             public Boolean call() throws Exception {
+                // this is required to allow timer\handlers to run
+                Robolectric.getUiThreadScheduler().advanceBy(System.currentTimeMillis() - timestamp);
+
+                timestamp = System.currentTimeMillis();
                 return responseReceived; // The condition that must be fulfilled
             }
         };
