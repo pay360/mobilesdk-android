@@ -164,12 +164,14 @@ public class PaymentManager {
 
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this.context);
 
-        // register to receive events from 3DS activity
+        // register to receive events from 3DS activity - use LocalBroadcastManager here as
+        // ThreeDSActivity.ACTION_COMPLETED is internal to the SDK
         lbm.registerReceiver(new ThreeDSecureReceiver(),
                 new IntentFilter(ThreeDSActivity.ACTION_COMPLETED));
 
-        // register to receive network connectivity events
-        lbm.registerReceiver(new NetworkConnectivityReceiver(),
+        // register to receive network connectivity events - use this.context here as
+        // ConnectivityManager.CONNECTIVITY_ACTION is global
+        this.context.registerReceiver(new NetworkConnectivityReceiver(),
                 new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         deviceManager = new DeviceManager(this.context);
@@ -398,9 +400,10 @@ public class PaymentManager {
     public void getTransactionStatus(String operationId) throws InvalidCredentialsException,
             TransactionInProgressException, TransactionSuspendedFor3DSException {
 
-        PaymentError error = null;
         switch (state) {
             case STATE_IDLE:
+
+                this.operationId = operationId;
 
                 // call server endpoint to get transaction status
                 createService();
