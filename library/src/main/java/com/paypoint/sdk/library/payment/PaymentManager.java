@@ -9,8 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -20,6 +22,7 @@ import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.exception.TransactionInProgressException;
 import com.paypoint.sdk.library.exception.TransactionSuspendedFor3DSException;
+import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
@@ -72,6 +75,12 @@ public class PaymentManager {
     private static final int REASON_SUSPENDED_FOR_3D_SECURE         = 7;
     private static final int REASON_SUSPENDED_FOR_CLIENT_REDIRECT   = 8;
 
+    private static final long DEFAULT_STATUS_BACKOFF                = 5000L;
+
+    // backoff in ms for retrying status command e.g. first retry = 1000ms, 2nd = 2000ms, 3rd = 2000ms
+    // 4th = 5000ms, thereafter 5000ms
+    private static final Long[] STATUS_RETRY_BACKOFF = new Long[] {1000L, 2000L, 2000L, 5000L};
+
     public interface MakePaymentCallback {
 
         public void paymentSucceeded(PaymentSuccess success);
@@ -98,8 +107,10 @@ public class PaymentManager {
     private MakePaymentRequest makePaymentRequest;
     private ThreeDSResumeRequest threeDSResumeRequest;
     private Timer sessionTimer;
+    private Timer retryDelayTimer;
     private State state = State.STATE_IDLE;
     private CompositeSubscription subscriptions = new CompositeSubscription();
+    private int retryCount;
 
     private static PaymentManager instance;
 
@@ -123,6 +134,7 @@ public class PaymentManager {
     private enum Event {
         EVENT_RESPONSE_NOT_RECEIVED,
         EVENT_NETWORK_CONNECTED,
+        EVENT_GET_STATUS,
         EVENT_SESSION_TIMEOUT;
     }
 
@@ -171,6 +183,8 @@ public class PaymentManager {
                 .setType(deviceManager.getType())
                 .setScreenRes(deviceManager.getScreenRes())
                 .setScreenDpi(deviceManager.getScreenDpi());
+
+        retryDelayTimer = new Timer(new RetryDelayTimeoutHandler(), DEFAULT_STATUS_BACKOFF, false);
     }
 
     private PayPointService createService(String serverUrl)
@@ -444,8 +458,11 @@ public class PaymentManager {
                     break;
 
                 case EVENT_RESPONSE_NOT_RECEIVED:
-                    // TODO wait for short to repeatedly calling GET status?
                     onEventResponseNotReceived(state);
+                    break;
+
+                case EVENT_GET_STATUS:
+                    onEventRetryStatus(state);
                     break;
 
                 case EVENT_SESSION_TIMEOUT:
@@ -462,8 +479,46 @@ public class PaymentManager {
     private void onEventResponseNotReceived(State state) {
         // only request status if waiting payment or resume response
         if (state == State.STATE_PAYMENT_WAITING_RESPONSE ||
-                state == State.STATE_RESUME_WAITING_RESPONSE ||
-                state == State.STATE_STATUS_WAITING_RESPONSE) {
+            state == State.STATE_RESUME_WAITING_RESPONSE ||
+            state == State.STATE_STATUS_WAITING_RESPONSE) {
+
+            // back off for period dependant on retry attempts
+            retryDelayTimer.start(getStatusBackoff(retryCount++));
+        }
+    }
+
+    /**
+     * Callback for retry timer expiration
+     */
+    private class RetryDelayTimeoutHandler implements Runnable {
+        @Override
+        public void run() {
+            onEvent(Event.EVENT_GET_STATUS);
+        }
+    }
+
+    /**
+     * Returns backoff period to wait before retrying get status
+     * @param retry
+     * @return
+     */
+    private long getStatusBackoff(int retry) {
+
+        // get backoff period before sending to status endpoint, period depends on retry attempts
+        long backoff = DEFAULT_STATUS_BACKOFF;
+
+        if (retry < STATUS_RETRY_BACKOFF.length) {
+            backoff = STATUS_RETRY_BACKOFF[retry];
+        }
+
+        return backoff;
+    }
+
+    private void onEventRetryStatus(State state) {
+        // ensure still in correct state + session hasn't timed out
+        if (state == State.STATE_PAYMENT_WAITING_RESPONSE ||
+            state == State.STATE_RESUME_WAITING_RESPONSE ||
+            state == State.STATE_STATUS_WAITING_RESPONSE) {
 
             subscriptions.add(service.paymentStatus("Bearer " + credentials.getToken(),
                     credentials.getInstallationId(), operationId)
@@ -532,6 +587,9 @@ public class PaymentManager {
         // reset state
         setState(State.STATE_IDLE);
 
+        // reset retry count
+        retryCount = 0;
+
         // cancel any existing timers
         if (sessionTimer != null) {
             sessionTimer.cancel();
@@ -552,8 +610,13 @@ public class PaymentManager {
         // reset state
         setState(State.STATE_IDLE);
 
+        // cancel timers
         if (sessionTimer != null) {
             sessionTimer.cancel();
+        }
+
+        if (retryDelayTimer != null) {
+            retryDelayTimer.cancel();
         }
     }
 

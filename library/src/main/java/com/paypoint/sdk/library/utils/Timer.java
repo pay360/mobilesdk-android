@@ -52,10 +52,23 @@ public class Timer {
 	 */
 	public void start() {
 		// cancel current
-		reset();
+		reset(timeoutMillis);
 	}
+
+    /** Starts the timer - you should typically call this in onStart() or onResume()
+     */
+    public void start(long timeoutMillis) {
+        // cancel current
+        reset(timeoutMillis);
+    }
+
+    public void reset() {
+        reset(timeoutMillis);
+    }
 	
-	public void reset() {
+	private void reset(long timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+
 		// cancel current
 		cancel();
 		
