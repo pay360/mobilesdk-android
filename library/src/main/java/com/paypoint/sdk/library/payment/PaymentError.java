@@ -78,21 +78,21 @@ public class PaymentError {
         TRANSACTION_NOT_FOUND(10, false);
 
         int code;
-        boolean indeterminate;
+        boolean checkStatus;
 
-        ReasonCode(int code, boolean indeterminate) {
+        ReasonCode(int code, boolean checkStatus) {
             this.code = code;
-            this.indeterminate = indeterminate;
+            this.checkStatus = checkStatus;
         }
 
         /**
          * Whether the transaction completed e.g. success\fail or is in in unknown state
-         * If true then get the status of the current transaction otherwise it is safe to make
-         * the payment again without this resulting in duplicates
+         * If true then get the status of the current transaction is unknown in which
+         * case the app should call getTransactionStatus to get the status of the transaction
          * @return true if transaction in unknown state
          */
-        public boolean isIndeterminate() {
-            return indeterminate;
+        public boolean shouldCheckStatus() {
+            return checkStatus;
         }
 
         public static ReasonCode getReasonCode(int code) {
