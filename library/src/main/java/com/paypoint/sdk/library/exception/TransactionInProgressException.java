@@ -5,7 +5,7 @@
 package com.paypoint.sdk.library.exception;
 
 /**
- * Payment validation error
+ * A transaction is currently in progress - wait for completion
  */
 public class TransactionInProgressException extends Exception {
 }

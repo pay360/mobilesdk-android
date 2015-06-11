@@ -56,7 +56,7 @@ public class Transaction {
 
     /**
      * Merchant reference
-     * @param merchantReference generate a unique valid for tracking
+     * @param merchantReference generate your own unique identifier for tracking
      * @return
      */
     public Transaction setMerchantReference(String merchantReference) {

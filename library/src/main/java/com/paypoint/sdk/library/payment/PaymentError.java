@@ -9,7 +9,7 @@ import com.paypoint.sdk.library.payment.request.CustomField;
 import java.util.List;
 
 /**
- * Error from payment request
+ * Error from payment/authorisation request
  */
 public class PaymentError {
 

@@ -60,6 +60,12 @@ android.libraryVariants.all { variant ->
         exclude '**/device'
         exclude '**/response'
         exclude '**/ThreeDSActivity.java'
+        exclude '**/ThreeDSResumeRequest.java'
+        exclude '**/MakePaymentRequest.java'
+        exclude '**/DeviceInfo.java'
+        exclude '**/NetworkManager.java'
+        exclude '**/PayPointService.java'
+        exclude '**/SelfSignedSocketFactory.java'
     }
 }
 

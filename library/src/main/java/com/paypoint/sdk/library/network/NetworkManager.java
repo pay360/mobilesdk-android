@@ -9,7 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 /**
- * Manager for handling network related functions
+ * Network related functions
  */
 public class NetworkManager {
 

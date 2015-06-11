@@ -5,7 +5,7 @@
 package com.paypoint.sdk.library.exception;
 
 /**
- * Payment validation error
+ * A transaction is suspended waiting for 3D Secure input from the user - wait for completion
  */
 public class TransactionSuspendedFor3DSException extends Exception {
 }

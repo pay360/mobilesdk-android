@@ -9,7 +9,8 @@ import android.text.TextUtils;
 import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 
 /**
- * Credentials required for PayPoint authentication
+ * Credentials required for PayPoint authentication - retrieve these will a call to YOUR server
+ * then pass into {@link com.paypoint.sdk.library.payment.PaymentManager#setCredentials(PayPointCredentials)} )}
  */
 public class PayPointCredentials {
 

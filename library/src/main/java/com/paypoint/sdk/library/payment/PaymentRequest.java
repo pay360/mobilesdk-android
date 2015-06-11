@@ -15,7 +15,7 @@ import com.paypoint.sdk.library.security.PayPointCredentials;
 import java.util.List;
 
 /**
- * Represents a payment
+ * Represents a payment/authorisation
  */
 public class PaymentRequest {
 
