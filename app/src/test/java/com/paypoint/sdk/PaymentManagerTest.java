@@ -113,7 +113,8 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         Assert.assertNotNull(responseSuccess);
         Assert.assertTrue(responseSuccess.getAmount() > 0);
         Assert.assertNotNull(responseSuccess.getCurrency());
-        Assert.assertNotNull(responseSuccess.getLastFour());
+        Assert.assertNotNull(responseSuccess.getLastFourPan());
+        Assert.assertNotNull(responseSuccess.getMaskedPan());
         Assert.assertNotNull(responseSuccess.getMerchantReference());
         Assert.assertNotNull(responseSuccess.getTransactionId());
     }
@@ -491,7 +492,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
 
     @Test
     public void testDeferredPayment() throws Exception {
-        transaction.setDeferred(true);
+        transaction.setAuthorisation();
 
         makePayment();
 

@@ -18,7 +18,9 @@ public class PaymentSuccess implements Serializable {
 
     private String merchantReference;
 
-    private String lastFour;
+    private String lastFourPan;
+
+    private String maskedPan;
 
     private float amount;
 
@@ -34,8 +36,12 @@ public class PaymentSuccess implements Serializable {
         this.merchantReference = merchantReference;
     }
 
-    protected void setLastFour(String lastFour) {
-        this.lastFour = lastFour;
+    protected void setLastFourPan(String lastFourPan) {
+        this.lastFourPan = lastFourPan;
+    }
+
+    protected void setMaskedPan(String maskedPan) {
+        this.maskedPan = maskedPan;
     }
 
     protected void setAmount(float amount) {
@@ -50,22 +56,50 @@ public class PaymentSuccess implements Serializable {
         this.customFields = customFields;
     }
 
+    /**
+     * Transaction Id
+     * @return unique transaction identifier
+     */
     public String getTransactionId() {
         return transactionId;
     }
 
+    /**
+     * Merchant reference
+     * @return sane unique reference specified in the request
+     */
     public String getMerchantReference() {
         return merchantReference;
     }
 
-    public String getLastFour() {
-        return lastFour;
+    /**
+     * Last four PAN
+     * @return last four digits of the PAN
+     */
+    public String getLastFourPan() {
+        return lastFourPan;
     }
 
+    /**
+     * Masked PAN
+     * @return PAN with middle digits masked out for security
+     */
+    public String getMaskedPan() {
+        return maskedPan;
+    }
+
+    /**
+     * Transaction amount
+     * @return the amount of the transaction
+     */
     public float getAmount() {
         return amount;
     }
 
+    /**
+     * Transaction currency
+     * @return the currency of the transaction
+     */
     public String getCurrency() {
         return currency;
     }

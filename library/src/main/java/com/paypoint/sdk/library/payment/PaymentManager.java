@@ -792,7 +792,8 @@ public class PaymentManager {
             success.setCurrency(paymentResponse.getCurrency());
             success.setTransactionId(paymentResponse.getTransactionId());
             success.setMerchantReference(paymentResponse.getMerchantRef());
-            success.setLastFour(paymentResponse.getLastFourDigits());
+            success.setLastFourPan(paymentResponse.getLastFourDigits());
+            success.setMaskedPan(paymentResponse.getMaskedPan());
             success.setCustomFields(paymentResponse.getCustomFields());
 
             executeCallback(success);

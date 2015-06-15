@@ -29,6 +29,9 @@ public class Transaction {
     @SerializedName("deferred")
     private boolean deferred;
 
+    @SerializedName("recurring")
+    private boolean recurring;
+
     /**
      * Transaction currency
      * @param currency e.g. "GDP"
@@ -65,13 +68,21 @@ public class Transaction {
     }
 
     /**
-     * Deferred transaction
-     * @param deferred to to true for authorization
+     * Submit an Authorisation instead of a Payment
      * @return
      */
-    public Transaction setDeferred(boolean deferred) {
-        this.deferred = deferred;
+    public Transaction setAuthorisation() {
+        this.deferred = true;
         return this;
+    }
+
+    /**
+     * Call if the first payment or authorisation of a continuous authority sequence.
+     * Subsequent repeats can be initiated using the "Repeat a Payment" call.
+     * Details can be found here https://developer.paypoint.com/payments/docs/#payments/repeat_a_payment>
+     */
+    public void setRecurring() {
+        this.recurring = true;
     }
 
     public float getAmount() {

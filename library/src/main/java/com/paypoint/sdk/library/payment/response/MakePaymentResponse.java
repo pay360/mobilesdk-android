@@ -93,6 +93,17 @@ public class MakePaymentResponse {
         return lastFour;
     }
 
+    public String getMaskedPan() {
+        String maskedPan = null;
+
+        if (paymentMethod != null &&
+            paymentMethod.getCard() != null) {
+            maskedPan = paymentMethod.getCard().getMaskedPan();
+        }
+
+        return maskedPan;
+    }
+
     public int getReasonCode() {
         int reasonCode = REASON_CODE_UNKNOWN;
 
@@ -195,11 +206,17 @@ public class MakePaymentResponse {
 
     private class PaymentCard {
 
+        @SerializedName("cardUsageType")
         private String cardUsageType;
 
+        @SerializedName("cardScheme")
         private String cardScheme;
 
+        @SerializedName("lastFour")
         private String lastFour;
+
+        @SerializedName("maskedPan")
+        private String maskedPan;
 
         public String getCardUsageType() {
             return cardUsageType;
@@ -211,6 +228,10 @@ public class MakePaymentResponse {
 
         public String getLastFour() {
             return lastFour;
+        }
+
+        public String getMaskedPan() {
+            return maskedPan;
         }
     }
 
