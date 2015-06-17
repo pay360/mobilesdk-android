@@ -32,7 +32,20 @@ public class DeviceManager {
     private static final String TYPE_SMARTPHONE = "SMARTPHONE";
     private static final String TYPE_TABLET     = "TABLET";
 
-    private static final String PROPERY_UNKOWN  = "unknown";
+    private static final String PROPERTY_UNKNOWN = "unknown";
+
+    private static final int    MAX_LENGTH_SDK_INSTALLATION_ID  = 36;
+    private static final int    MAX_LENGTH_SDK_VERSION          = 32;
+    private static final int    MAX_LENGTH_MERCHANT_APP_NAME    = 256;
+    private static final int    MAX_LENGTH_MERCHANT_APP_VERSION = 32;
+    private static final int    MAX_LENGTH_OS_FAMILY            = 32;
+    private static final int    MAX_LENGTH_OS_NAME              = 32;
+    private static final int    MAX_LENGTH_MODEL_FAMILY         = 32;
+    private static final int    MAX_LENGTH_MODEL_NAME           = 256;
+    private static final int    MAX_LENGTH_MANUFACTURER         = 32;
+    private static final int    MAX_LENGTH_TYPE                 = 32;
+    private static final int    MAX_LENGTH_SCREEN_RES           = 32;
+
 
     private Context context;
 
@@ -66,7 +79,7 @@ public class DeviceManager {
      * @return
      */
     public String getOsFamily() {
-        return checkPropertySet(OS_ANDROID);
+        return checkPropertySet(OS_ANDROID, MAX_LENGTH_OS_FAMILY);
     }
 
     /**
@@ -74,7 +87,8 @@ public class DeviceManager {
      * @return
      */
     public String getOsName() {
-        return checkPropertySet(OS_ANDROID + " " + Build.VERSION.RELEASE);
+        return checkPropertySet(OS_ANDROID + " " + Build.VERSION.RELEASE,
+                MAX_LENGTH_OS_NAME);
     }
 
     /**
@@ -82,7 +96,7 @@ public class DeviceManager {
      * @return
      */
     public String getModelFamily() {
-        return checkPropertySet(FAMILY_ANDROID);
+        return checkPropertySet(FAMILY_ANDROID, MAX_LENGTH_MODEL_FAMILY);
     }
 
     /**
@@ -90,7 +104,7 @@ public class DeviceManager {
      * @return
      */
     public String getModelName() {
-        return checkPropertySet(Build.MODEL);
+        return checkPropertySet(Build.MODEL, MAX_LENGTH_MODEL_NAME);
     }
 
     /**
@@ -98,7 +112,7 @@ public class DeviceManager {
      * @return
      */
     public String getManufacturer() {
-        return checkPropertySet(Build.MANUFACTURER);
+        return checkPropertySet(Build.MANUFACTURER, MAX_LENGTH_MANUFACTURER);
     }
 
     /**
@@ -122,7 +136,7 @@ public class DeviceManager {
             screenRes = String.format("%dx%d", metrics.widthPixels, metrics.heightPixels);
         }
 
-        return checkPropertySet(screenRes);
+        return checkPropertySet(screenRes, MAX_LENGTH_SCREEN_RES);
     }
 
     /**
@@ -142,7 +156,7 @@ public class DeviceManager {
     }
 
     public String getMerchantAppName() {
-        return checkPropertySet(context.getPackageName());
+        return checkPropertySet(context.getPackageName(), MAX_LENGTH_MERCHANT_APP_NAME);
     }
 
     public String getMerchantAppVersion() {
@@ -154,15 +168,19 @@ public class DeviceManager {
             Log.w(Logger.TAG, "Failed to get merchant app version", e);
         }
 
-        return checkPropertySet(version);
+        return checkPropertySet(version, MAX_LENGTH_MERCHANT_APP_VERSION);
     }
 
-    private String checkPropertySet(String property) {
+    private String checkPropertySet(String property, int maxLength) {
 
         // return "unknown" if poperty not set
         if (TextUtils.isEmpty(property)) {
-            return PROPERY_UNKOWN;
+            return PROPERTY_UNKNOWN;
         } else {
+            // check max length
+            if (property.length() > maxLength) {
+                property = property.substring(0, maxLength);
+            }
             return property;
         }
     }
