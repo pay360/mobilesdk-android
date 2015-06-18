@@ -4,8 +4,6 @@
 
 package com.paypoint.sdk.library.payment;
 
-import com.paypoint.sdk.library.payment.request.CustomField;
-
 import java.io.Serializable;
 import java.util.List;
 

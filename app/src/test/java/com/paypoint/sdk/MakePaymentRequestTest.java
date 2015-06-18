@@ -7,11 +7,10 @@ package com.paypoint.sdk;
 import android.content.res.Resources;
 
 import com.google.gson.Gson;
-import com.paypoint.sdk.library.payment.PaymentManager;
-import com.paypoint.sdk.library.payment.request.CustomerDetails;
-import com.paypoint.sdk.library.payment.request.DeviceInfo;
-import com.paypoint.sdk.library.payment.request.FinancialServices;
-import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
+import com.paypoint.sdk.library.payment.CustomerDetails;
+import com.paypoint.sdk.library.payment.DeviceInfo;
+import com.paypoint.sdk.library.payment.FinancialServices;
+import com.paypoint.sdk.library.payment.MakePaymentRequest;
 
 import junit.framework.Assert;
 

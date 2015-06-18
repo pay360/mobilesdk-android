@@ -12,12 +12,12 @@ import com.paypoint.sdk.library.payment.PaymentError;
 import com.paypoint.sdk.library.payment.PaymentManager;
 import com.paypoint.sdk.library.payment.PaymentRequest;
 import com.paypoint.sdk.library.payment.PaymentSuccess;
-import com.paypoint.sdk.library.payment.request.BillingAddress;
-import com.paypoint.sdk.library.payment.request.CustomField;
-import com.paypoint.sdk.library.payment.request.CustomerDetails;
-import com.paypoint.sdk.library.payment.request.FinancialServices;
-import com.paypoint.sdk.library.payment.request.PaymentCard;
-import com.paypoint.sdk.library.payment.request.Transaction;
+import com.paypoint.sdk.library.payment.BillingAddress;
+import com.paypoint.sdk.library.payment.CustomField;
+import com.paypoint.sdk.library.payment.CustomerDetails;
+import com.paypoint.sdk.library.payment.FinancialServices;
+import com.paypoint.sdk.library.payment.PaymentCard;
+import com.paypoint.sdk.library.payment.Transaction;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 
 import junit.framework.Assert;

@@ -4,11 +4,10 @@
 
 package com.paypoint.sdk.library.network;
 
-import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
-import com.paypoint.sdk.library.payment.request.ThreeDSResumeRequest;
-import com.paypoint.sdk.library.payment.response.MakePaymentResponse;
+import com.paypoint.sdk.library.payment.MakePaymentRequest;
+import com.paypoint.sdk.library.payment.ThreeDSResumeRequest;
+import com.paypoint.sdk.library.payment.MakePaymentResponse;
 
-import retrofit.Callback;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Header;

@@ -9,10 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,18 +20,11 @@ import com.paypoint.sdk.library.exception.InvalidCredentialsException;
 import com.paypoint.sdk.library.exception.PaymentValidationException;
 import com.paypoint.sdk.library.exception.TransactionInProgressException;
 import com.paypoint.sdk.library.exception.TransactionSuspendedFor3DSException;
-import com.paypoint.sdk.library.log.Logger;
 import com.paypoint.sdk.library.network.EndpointManager;
 import com.paypoint.sdk.library.network.NetworkManager;
 import com.paypoint.sdk.library.network.PayPointService;
 import com.paypoint.sdk.library.network.SelfSignedSocketFactory;
-import com.paypoint.sdk.library.payment.request.CustomField;
-import com.paypoint.sdk.library.payment.request.DeviceInfo;
-import com.paypoint.sdk.library.payment.request.PaymentCard;
-import com.paypoint.sdk.library.payment.request.PaymentMethod;
-import com.paypoint.sdk.library.payment.request.MakePaymentRequest;
-import com.paypoint.sdk.library.payment.request.ThreeDSResumeRequest;
-import com.paypoint.sdk.library.payment.response.MakePaymentResponse;
+import com.paypoint.sdk.library.payment.MakePaymentResponse;
 import com.paypoint.sdk.library.security.PayPointCredentials;
 import com.paypoint.sdk.library.utils.Timer;
 import com.squareup.okhttp.OkHttpClient;
@@ -48,7 +39,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.OkClient;
@@ -238,11 +228,11 @@ public class PaymentManager {
     }
 
     /**
-     * Timeout waiting for response from the server
-     * Defaults to 60s.
+     * Timeout waiting for a callback when making a payment. SDK guarantees to make callback within
+     * this period. Defaults to 60s.
      * DO NOT ALTER WITHOUT GOOD REASON
-     * @param sessionTimeoutSeconds
-     * @return
+     * @param sessionTimeoutSeconds timeout for making a payment in second
+     * @return PaymentManager for chaining
      */
     public PaymentManager setSessionTimeout(int sessionTimeoutSeconds) {
         this.sessionTimeoutSeconds = sessionTimeoutSeconds;
@@ -253,6 +243,7 @@ public class PaymentManager {
      * URL of the PayPoint server
      * @param url the base url of the PayPoint server. The URL can be obtained from
      * {@link com.paypoint.sdk.library.network.EndpointManager#getEndpointUrl(com.paypoint.sdk.library.network.EndpointManager.Environment)}
+     * @return PaymentManager for chaining
      */
     public PaymentManager setUrl(String url) {
         this.url = url;
@@ -262,7 +253,7 @@ public class PaymentManager {
     /**
      * Set PayPoint authentication credentials - retrieve these from a call to YOUR server
      * @param credentials the credentials required to make a payment
-     * @return
+     * @return PaymentManager for chaining
      */
     public PaymentManager setCredentials(PayPointCredentials credentials) {
         this.credentials = credentials;
@@ -271,7 +262,7 @@ public class PaymentManager {
 
     /**
      * Register the payment callback. Call this prior to {@link #makePayment(PaymentRequest)}
-     * @param callback
+     * @param callback callback when payment completed (success or fail)
      */
     public void registerPaymentCallback(PaymentManager.MakePaymentCallback callback) {
         this.callback = new WeakReference<MakePaymentCallback>(callback);
@@ -621,8 +612,8 @@ public class PaymentManager {
      * Validates the payment request.
      * Call this prior to going online to get PayPoint credentials for the call to {@link #makePayment(PaymentRequest)}
      * to detect any errors in the payment form
-     * @param request
-     * @throws PaymentValidationException
+     * @param request payment request
+     * @throws PaymentValidationException error validating payment request
      */
     public void validatePaymentDetails(com.paypoint.sdk.library.payment.PaymentRequest request)
             throws PaymentValidationException {
@@ -657,8 +648,8 @@ public class PaymentManager {
 
     /**
      * Validates PAN/card number. Useful for inline form validation
-     * @param pan
-     * @throws PaymentValidationException
+     * @param pan card PAN
+     * @throws PaymentValidationException error validating card PAN
      */
     public void validateCardPan(String pan) throws PaymentValidationException {
         PaymentCard.validatePan(pan);
@@ -666,8 +657,8 @@ public class PaymentManager {
 
     /**
      * Validates card expiry. Useful for inline form validation
-     * @param expiry
-     * @throws PaymentValidationException
+     * @param expiry card expiry date
+     * @throws PaymentValidationException error validating card expiry date
      */
     public void validateCardExpiry(String expiry) throws PaymentValidationException {
         PaymentCard.validateExpiry(expiry);
@@ -675,8 +666,8 @@ public class PaymentManager {
 
     /**
      * Validates cv2. Useful for inline form validation
-     * @param cv2
-     * @throws PaymentValidationException
+     * @param cv2 card CV2
+     * @throws PaymentValidationException error validating card CV2
      */
     public void validateCardCv2(String cv2) throws PaymentValidationException {
         PaymentCard.validateCv2(cv2);

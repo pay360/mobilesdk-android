@@ -39,6 +39,8 @@ public class EndpointManager {
 
     /**
      * Checks if URL matches a PayPoint environment URL
+     * @param url URL to test
+     * @return true if PayPoint URL
      */
     public static boolean isPayPointUrl(String url) {
         for (Environment environment :Environment.values()) {
@@ -53,8 +55,8 @@ public class EndpointManager {
 
     /**
      * Checks if URL is a custom URL i.e. does not matches an PayPoint environment URL
-     * @param url
-     * @return
+     * @param url URL to test
+     * @return true if custom URL
      */
     public static boolean isCustomUrl(String url) {
         return !isPayPointUrl(url);

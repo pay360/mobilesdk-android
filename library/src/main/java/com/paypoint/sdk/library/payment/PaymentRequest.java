@@ -4,14 +4,6 @@
 
 package com.paypoint.sdk.library.payment;
 
-import com.paypoint.sdk.library.payment.request.BillingAddress;
-import com.paypoint.sdk.library.payment.request.CustomField;
-import com.paypoint.sdk.library.payment.request.CustomerDetails;
-import com.paypoint.sdk.library.payment.request.FinancialServices;
-import com.paypoint.sdk.library.payment.request.PaymentCard;
-import com.paypoint.sdk.library.payment.request.Transaction;
-import com.paypoint.sdk.library.security.PayPointCredentials;
-
 import java.util.List;
 
 /**
@@ -37,7 +29,8 @@ public class PaymentRequest {
 
     /**
      * Set mandatory transaction details
-     * @param transaction
+     * @param transaction transation details
+     * @return PaymentRequest for chaining
      */
     public PaymentRequest setTransaction(Transaction transaction) {
         this.transaction = transaction;
@@ -50,7 +43,8 @@ public class PaymentRequest {
 
     /**
      * Set mandatory card details
-     * @param card
+     * @param card card details
+     * @return PaymentRequest for chaining
      */
     public PaymentRequest setCard(PaymentCard card) {
         this.card = card;
@@ -63,7 +57,8 @@ public class PaymentRequest {
 
     /**
      * Set optional billing address
-     * @param address
+     * @param address billing address
+     * @return PaymentRequest for chaining
      */
     public PaymentRequest setAddress(BillingAddress address) {
         this.address = address;
@@ -76,7 +71,8 @@ public class PaymentRequest {
 
     /**
      * Set optional financial services
-     * @param financialServices
+     * @param financialServices financial services details
+     * @return PaymentRequest for chaining
      */
     public PaymentRequest setFinancialServices(FinancialServices financialServices) {
         this.financialServices = financialServices;
@@ -89,7 +85,8 @@ public class PaymentRequest {
 
     /**
      * Set optional customer details
-     * @param customer
+     * @param customer customer details
+     * @return PaymentRequest for chaining
      */
     public PaymentRequest setCustomer(CustomerDetails customer) {
         this.customer = customer;
@@ -102,7 +99,8 @@ public class PaymentRequest {
 
     /**
      * Set optional custom fields
-     * @param customFields
+     * @param customFields custom fields
+     * @return PaymentRequest for chaining
      */
     public PaymentRequest setCustomFields(List<CustomField> customFields) {
         this.customFields = customFields;
