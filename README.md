@@ -1,18 +1,24 @@
-#PayPoint Advanced Payments SDK
+#PayPoint Advanced Payments Android SDK
 
-Requires at minimum Android 4.0 (API level 14)
+##Requirements
+
+At minimum Android 4.0 (API level 14)
+
+##Download
 
 **NOTE this step will change once the library is available as a Maven artifact**
 
-Copy the PayPoint SDK library paypoint_sdk-x.x.x.aar into the module libs folder.
+CHANGE THIS NOW SDK IN GITHUB - NEED TO ADD GITHUB REPO TO repositories
 
-Add the following to your module dependencies
+Add the following to your gradle build
 
 ```groovy
 
-// TODO use correct Maven Repo when known
+    // ****************TODO UPDATE MAVEN URL*************************
+    maven { url 'http://192.168.6.244:8080/nexus/content/repositories/blue-snapshots' }
+
     compile('net.paypoint:mobilesdk-android:x.y.z')
-}
+
 ```
 
 In the module gradle build set minSdkVersion to 14 or above.
@@ -34,7 +40,19 @@ Register for an account at [PayPoint Explorer](https://developer.paypoint.com/pa
 This will provide installation ids for Hosted Cashier and Cashier API, either can be used with the Mobile SDK.
 Payments made through the Mobile SDK can be tracked in the [Portal](https://portal.mite.paypoint.net:3443/portal-client/#/en_gb/log_in)
 
-##Make a Payment
+##Testing your application in the MITE environment
+
+PayPoint provide a Merchant Integration and Testing Environment (MITE), which lets you test your payment applications. In order to make test payments your server must obtain a client access token for your app, from our API. Instructions for doing this are available here:
+TBD: {TODO: placeholder for server-side authoriseClient call}
+For convenience we provide a mock REST api which supplies these tokens for your test installations which can be used for prototyping your app in our MITE environment:
+
+##Mock Authorise Client Call
+
+For testing against MITE, you can use the following endpoint to return an authorisation token for use when making a payment
+
+https://developer.paypoint.com/payments/explore/rest/mockmobilemerchant/getToken/<YOUR_PAYPOINT_INSTALLATION_ID>
+
+##Making a Payment
 
 Create a simple activity accepting a card number, expiry and CV2.
 Get an instance of PaymentManager in onCreate()
@@ -44,7 +62,7 @@ paymentManager = PaymentManager.getInstance(this)
         .setUrl(EndpointManager.getEndpointUrl(EndpointManager.Environment.MITE));
 ```
 
-Use EndpointManager.getEndpointUrl() to get the URL for a PayPoint environment. The demo app uses the MITE environment, you will need to switch to the PRODUCTION environment to make real payments.
+Use EndpointManager.getEndpointUrl() to get the URL for a PayPoint environment.
 
 Register a payment callback handler in OnResume and unregister the callback in OnPause to ensure your activity handles device orientation changes correctly if not locked to a single orientation.
 
@@ -114,7 +132,7 @@ public static void validateCv2(String cv2) throws PaymentValidationException
 PaymentValidationException holds an error code enumeration describing the error.
 
 If the PaymentRequest validates successfully i.e. does not throw a PaymentValidationException, your app should then communicate with **YOUR** server to request a PayPoint authorisation token. This token, when returned, should be used to create a PayPointCredentials object which should then be passed to the PaymentManager.
-The demo app uses a mock MerchantTokenManager, this is just for testing against MITE.
+For testing against MITE see 'Mock Authorise Client Call' section above.
 
 ```java
 PayPointCredentials credentials = new PayPointCredentials()
