@@ -639,6 +639,15 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     }
 
     @Test
+    public void testRecurring() throws Exception {
+        transaction.setRecurring();
+
+        makePayment();
+
+        Assert.assertTrue(success);
+    }
+
+    @Test
     public void testReliableDeliverySuccess() throws Exception {
 
         responseTimeout = 60;
