@@ -18,69 +18,69 @@ public class PaymentError {
         /**
          * Network issue occurred during payment processing
          */
-        NETWORK_ERROR_DURING_PROCESSING(-7, true),
+        NETWORK_ERROR_DURING_PROCESSING(-7, false),
 
         /**
          * Failed to communicate with payment server
          */
-        NETWORK_NO_CONNECTION(-6, false),
+        NETWORK_NO_CONNECTION(-6, true),
 
         /**
          * Transaction not returned in given timeout period
          */
-        TRANSACTION_TIMED_OUT(-5, true),
+        TRANSACTION_TIMED_OUT(-5, false),
 
         /**
          * Transaction cancelled by user
          */
-        TRANSACTION_CANCELLED_BY_USER(-4, false),
+        TRANSACTION_CANCELLED_BY_USER(-4, true),
 
         /**
          * An unexpected error
          */
-        UNEXPECTED(-1, true),
+        UNEXPECTED(-1, false),
 
         /**
          * Request was not correctly formed
          */
-        INVALID(1, false),
+        INVALID(1, true),
 
         /**
          * The presented API token was not valid, or the wrong type of authentication was used
          */
-        AUTHENTICATION_FAILED(2, false),
+        AUTHENTICATION_FAILED(2, true),
 
         /**
          * Get a new token
          */
-        CLIENT_TOKEN_EXPIRED(3, false),
+        CLIENT_TOKEN_EXPIRED(3, true),
 
         /**
          * The token was valid, but does not grant you access to use the specified feature
          */
-        UNAUTHORISED_REQUEST(4, false),
+        UNAUTHORISED_REQUEST(4, true),
 
         /**
          * The transaction was declined by the server
          */
-        TRANSACTION_DECLINED(5, false),
+        TRANSACTION_DECLINED(5, true),
 
         /**
          * An internal server error occurred at PayPoint
          */
-        SERVER_ERROR(6, true),
+        SERVER_ERROR(6, false),
 
         /**
          * Transaction not found on the server, payment not taken
          */
-        TRANSACTION_NOT_FOUND(10, false);
+        TRANSACTION_NOT_FOUND(10, true);
 
         int code;
-        boolean checkStatus;
+        boolean safeToRetryPayment;
 
-        ReasonCode(int code, boolean checkStatus) {
+        ReasonCode(int code, boolean safeToRetryPayment) {
             this.code = code;
-            this.checkStatus = checkStatus;
+            this.safeToRetryPayment = safeToRetryPayment;
         }
 
         /**
@@ -89,8 +89,8 @@ public class PaymentError {
          * case the app should call getTransactionStatus to get the status of the transaction
          * @return true if transaction in unknown state
          */
-        public boolean shouldCheckStatus() {
-            return checkStatus;
+        public boolean isSafeToRetryPayment() {
+            return safeToRetryPayment;
         }
 
         public static ReasonCode getReasonCode(int code) {
