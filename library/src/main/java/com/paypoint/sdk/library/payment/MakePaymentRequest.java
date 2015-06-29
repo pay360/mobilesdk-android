@@ -38,7 +38,7 @@ public class MakePaymentRequest {
     private CustomFieldsContainer customFieldsContainer;
 
     public MakePaymentRequest setSdkVersion(String sdkVersion) {
-        this.sdkVersion = sdkVersion;
+        this.sdkVersion = "pp_android_sdk:" + sdkVersion;
         return this;
     }
 
