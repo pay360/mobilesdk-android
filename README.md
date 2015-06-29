@@ -6,18 +6,13 @@ At minimum Android 4.0 (API level 14)
 
 ##Download
 
-**NOTE this step will change once the library is available as a Maven artifact**
-
-CHANGE THIS NOW SDK IN GITHUB - NEED TO ADD GITHUB REPO TO repositories
-
 Add the following to your gradle build
 
 ```groovy
 
-    // ****************TODO UPDATE MAVEN URL*************************
-    maven { url 'http://192.168.6.244:8080/nexus/content/repositories/blue-snapshots' }
+    maven { url 'https://github.com/paypoint/maven-repo/raw/master' }
 
-    compile('net.paypoint:mobilesdk-android:x.y.z')
+    compile 'net.paypoint:mobilesdk-android:1.0.0-SNAPSHOT'
 
 ```
 

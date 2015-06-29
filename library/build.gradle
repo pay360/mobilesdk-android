@@ -9,8 +9,8 @@ android {
         minSdkVersion 14
         targetSdkVersion 21
         versionCode 1
-        versionName "0.0.1"
-        version="0.0.1"
+        versionName "1"
+        version="1"
         archivesBaseName="paypoint_sdk"
     }
     buildTypes {
@@ -22,7 +22,7 @@ android {
                 variant.outputs.each { output ->
                     def outputFile = output.outputFile
                     if (outputFile != null && outputFile.name.endsWith('.aar')) {
-                        def fileName = "${archivesBaseName}-${version}.aar"
+                        def fileName = "${archivesBaseName}.aar"
                         output.outputFile = new File(outputFile.parent, fileName)
                     }
                 }
@@ -74,17 +74,16 @@ uploadArchives {
 
     configuration = configurations.archives
     repositories.mavenDeployer {
-//        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-        repository(url: project.property('paypoint.nexus.repo')) {
-            authentication(userName: project.property('paypoint.nexus.repo.username'),
-                    password: project.property('paypoint.nexus.repo.password'))
+        repository(url: project.property('paypoint.maven.repo')) {
+            authentication(userName: project.property('paypoint.maven.repo.username'),
+                    password: project.property('paypoint.maven.repo.password'))
         }
 
         pom.project {
             pom.groupId = 'net.paypoint'
             pom.artifactId = "mobilesdk-android"
-            pom.version = '1.0.0-SNAPSHOT'
+            pom.version = project.property('paypoint.maven.pom.version')
             name 'PayPoint Advanced Payments SDK'
             packaging 'aar'
             description 'Library for making mobile payments with PayPoint'
