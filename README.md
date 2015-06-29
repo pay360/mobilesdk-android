@@ -12,7 +12,7 @@ Add the following to your gradle build
 
     maven { url 'https://github.com/paypoint/maven-repo/raw/master' }
 
-    compile 'net.paypoint:mobilesdk-android:1.0.0-SNAPSHOT'
+    compile 'net.paypoint:mobilesdk-android:1.0.0'
 
 ```
 
