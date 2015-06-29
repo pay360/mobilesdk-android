@@ -75,18 +75,24 @@ uploadArchives {
     configuration = configurations.archives
     repositories.mavenDeployer {
 
-        repository(url: project.property('paypoint.maven.repo')) {
-            authentication(userName: project.property('paypoint.maven.repo.username'),
-                    password: project.property('paypoint.maven.repo.password'))
-        }
+        if (project.hasProperty('paypoint.maven.repo')) {
+            repository(url: project.property('paypoint.maven.repo')) {
 
-        pom.project {
-            pom.groupId = 'net.paypoint'
-            pom.artifactId = "mobilesdk-android"
-            pom.version = project.property('paypoint.maven.pom.version')
-            name 'PayPoint Advanced Payments SDK'
-            packaging 'aar'
-            description 'Library for making mobile payments with PayPoint'
+                if (project.hasProperty('paypoint.maven.repo.username') &&
+                    project.hasProperty('paypoint.maven.repo.password')) {
+                    authentication(userName: project.property('paypoint.maven.repo.username'),
+                            password: project.property('paypoint.maven.repo.password'))
+                }
+            }
+
+            pom.project {
+                pom.groupId = 'net.paypoint'
+                pom.artifactId = "mobilesdk-android"
+                pom.version = project.property('paypoint.maven.pom.version')
+                name 'PayPoint Advanced Payments SDK'
+                packaging 'aar'
+                description 'Library for making mobile payments with PayPoint'
+            }
         }
     }
 }
