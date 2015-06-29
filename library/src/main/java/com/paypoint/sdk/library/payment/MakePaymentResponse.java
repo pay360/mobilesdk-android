@@ -296,8 +296,8 @@ public class MakePaymentResponse {
         @SerializedName("sessionTimeout")
         private long sessionTimeout;
 
-        @SerializedName("redirectTimeout")
-        private long redirectTimeout;
+        @SerializedName("passiveTimeout")
+        private long passiveTimeout;
 
         public String getAcsUrl() {
             return acsUrl;
@@ -319,8 +319,8 @@ public class MakePaymentResponse {
             return sessionTimeout;
         }
 
-        public long getRedirectTimeout() {
-            return redirectTimeout;
+        public long getPassiveTimeout() {
+            return passiveTimeout;
         }
 
         public boolean validateData() {
