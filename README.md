@@ -6,14 +6,16 @@ At minimum Android 4.0 (API level 14)
 
 ##Download
 
-Add the following to your gradle build
+Add the following to the gradle build repositories
 
 ```groovy
-
     maven { url 'https://github.com/paypoint/maven-repo/raw/master' }
+```
 
+And the following to the gradle build dependencies
+
+```groovy
     compile 'net.paypoint:mobilesdk-android:1.0.0'
-
 ```
 
 In the module gradle build set minSdkVersion to 14 or above.
