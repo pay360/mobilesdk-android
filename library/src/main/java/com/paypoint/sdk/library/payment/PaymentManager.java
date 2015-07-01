@@ -45,6 +45,7 @@ import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
 import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
 
 /**
@@ -521,6 +522,7 @@ public class PaymentManager {
             subscriptions.add(service.paymentStatus("Bearer " + credentials.getToken(),
                     credentials.getInstallationId(), operationId)
                     .timeout(TIMEOUT_RESPONSE_STATUS, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ResponseObserver()));
 
             setState(State.STATE_STATUS_WAITING_RESPONSE);
@@ -538,6 +540,7 @@ public class PaymentManager {
             subscriptions.add(service.makePayment(makePaymentRequest, "Bearer " + credentials.getToken(),
                     operationId, credentials.getInstallationId())
                     .timeout(TIMEOUT_RESPONSE_PAYMENT, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ResponseObserver()));
 
             setState(State.STATE_PAYMENT_WAITING_RESPONSE);
@@ -545,6 +548,7 @@ public class PaymentManager {
             subscriptions.add(service.resume3DS(threeDSResumeRequest, "Bearer " + credentials.getToken(),
                     operationId, credentials.getInstallationId(), transactionId)
                     .timeout(TIMEOUT_RESPONSE_RESUME, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ResponseObserver()));
 
             setState(State.STATE_RESUME_WAITING_RESPONSE);
@@ -552,6 +556,7 @@ public class PaymentManager {
             subscriptions.add(service.paymentStatus("Bearer " + credentials.getToken(),
                     credentials.getInstallationId(), operationId)
                     .timeout(TIMEOUT_RESPONSE_STATUS, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ResponseObserver()));
         }
     }
