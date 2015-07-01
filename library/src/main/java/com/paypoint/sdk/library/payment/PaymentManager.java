@@ -296,7 +296,7 @@ public class PaymentManager {
     }
 
     /**
-     * Unkocks the callback mechanism during screen orientation change. Call this AFTER {@link #registerPaymentCallback(com.paypoint.sdk.library.payment.PaymentManager.MakePaymentCallback)}
+     * Unlocks the callback mechanism during screen orientation change. Call this AFTER {@link #registerPaymentCallback(com.paypoint.sdk.library.payment.PaymentManager.MakePaymentCallback)}
      * in onResume() activity/fragment lifecycle e.g.
      *
      * <p>

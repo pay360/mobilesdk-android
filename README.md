@@ -4,7 +4,7 @@
 
 At minimum Android 4.0 (API level 14)
 
-## Download
+## Gradle
 
 Add the following to the gradle build repositories
 
@@ -12,13 +12,15 @@ Add the following to the gradle build repositories
     maven { url 'https://github.com/paypoint/maven-repo/raw/master' }
 ```
 
-And the following to the gradle build dependencies
+And the following to the module gradle build dependencies
 
 ```groovy
     compile 'net.paypoint:mobilesdk-android:1.0.0'
 ```
 
 In the module gradle build set minSdkVersion to 14 or above.
+
+## Manifest
 
 Add the following to your AndroidManifest.xml
 
@@ -51,7 +53,7 @@ https://developer.paypoint.com/payments/explore/rest/mockmobilemerchant/getToken
 
 ## Making a Payment
 
-Create a simple activity accepting a card number, expiry and CV2.
+Create a simple activity accepting a card number, expiry and CV2. Your activity will need to implement the PaymentManager.MakePaymentCallback interface.
 Get an instance of PaymentManager in onCreate()
 
 ```java
@@ -91,8 +93,8 @@ PaymentCard card = new PaymentCard()
         .setCardHolderName("Mr A Smith");
 
 Transaction transaction = new Transaction()
-        .setCurrency(“GBP”)
-        .setAmount("10.54")
+        .setCurrency("GBP")
+        .setAmount(10.54) // £10.54
         .setMerchantReference(merchantRef); // up to merchant to create a unique merchantRef
 
 BillingAddress address = new BillingAddress()
@@ -134,12 +136,14 @@ Details can be found here. https://developer.paypoint.com/payments/docs/#payment
 
 Financial services data and customer details can also optionally be created and set on the request.
 
-Your activity will need to implement the PaymentManager.MakePaymentCallback interface.
-
 Validate the payment details handling the PaymentValidationException
 
 ```java
-paymentManager.validatePaymentDetails(request);
+try {
+    paymentManager.validatePaymentDetails(request);
+} catch (PaymentValidationException e) {
+  // handle validation errors
+}
 ```
 
 Note: the PaymentManager also provides static functions for inline validation of the card fields as they are being entered
