@@ -20,7 +20,7 @@ public class MakePaymentResponse {
     private Outcome outcome;
 
     @SerializedName("threeDSRedirect")
-    private threeDSecure threeDSecure;
+    private ThreeDSecure threeDSecure;
 
     @SerializedName("customFields")
     private CustomFieldsContainer customFieldsContainer;
@@ -144,7 +144,7 @@ public class MakePaymentResponse {
         return customFields;
     }
 
-    public MakePaymentResponse.threeDSecure getThreeDSecure() {
+    public MakePaymentResponse.ThreeDSecure getThreeDSecure() {
         return threeDSecure;
     }
 
@@ -279,7 +279,7 @@ public class MakePaymentResponse {
         }
     }
 
-    public class threeDSecure {
+    public class ThreeDSecure {
 
         @SerializedName("acsUrl")
         private String acsUrl;

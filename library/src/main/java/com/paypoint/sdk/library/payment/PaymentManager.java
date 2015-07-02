@@ -810,7 +810,7 @@ public class PaymentManager {
 
         private void on3DSecure(MakePaymentResponse paymentResponse) {
             // ensure response contains valid 3DS credentials
-            MakePaymentResponse.threeDSecure threeDSecure = paymentResponse.getThreeDSecure();
+            MakePaymentResponse.ThreeDSecure threeDSecure = paymentResponse.getThreeDSecure();
 
             if (threeDSecure == null ||
                 !threeDSecure.validateData()) {
