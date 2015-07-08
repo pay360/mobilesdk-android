@@ -28,8 +28,7 @@ Add the following to your AndroidManifest.xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-<activity android:name="com.paypoint.sdk.library.ThreeDSActivity"
-    android:screenOrientation="portrait">
+<activity android:name="com.paypoint.sdk.library.ThreeDSActivity">
 </activity>
 ```
 
