@@ -965,7 +965,7 @@ public class PaymentManager {
                 } else if (timeout) {
                     error.setReasonCode(PaymentError.ReasonCode.TRANSACTION_TIMED_OUT);
                 } else {
-                    error.setReasonCode(PaymentError.ReasonCode.UNEXPECTED);
+                    error.setReasonCode(PaymentError.ReasonCode.NETWORK_NO_CONNECTION);
                 }
 
                 executeCallback(error);
