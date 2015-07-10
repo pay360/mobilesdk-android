@@ -40,8 +40,9 @@ Payments made through the Mobile SDK can be tracked in our MITE [Portal](https:/
 
 ## Testing your application in the MITE environment
 
-In order to make payments in MITE your server must obtain a client access token.  The client access token will be used by your app to submit payments. Instructions for doing this are available here:
-TBD: {TODO: placeholder for server-side authoriseClient call}
+In order to make payments in MITE your server must obtain a client access token.  The client access token will be used by your app to submit payments.
+Instructions for doing this are available [here](https://developer.paypoint.com/payments/docs/#getting_started/using_our_sdks)
+
 For convenience we provide a mock REST api which supplies these tokens for your MITE installations which can be used for prototyping your app.
 
 ## Mock Authorise Client Call
