@@ -1,4 +1,4 @@
-# Pay360 by Capita Advanced Payments Android SDK
+# Pay360 Advanced Payments Android SDK
 
 ## Requirements
 
@@ -34,8 +34,8 @@ Add the following to your AndroidManifest.xml
 
 ## Register
 
-You can sign up for a Pay360 by Capita Explorer account at [Pay360 by Capita Explorer](https://developer.paypoint.com/payments/explore/#/register).
-This will give you access to a number of Pay360 by Capita products including the Mobile SDK in our MITE environment. MITE - Merchant Integration Test Environment - is a dedicated environment for merchants to explore our products and build their integration before go-live.  We'll send you an Installation ID for Cashier API once you have signed up which can be used with the Mobile SDK.
+You can sign up for a Pay360 Explorer account at [Pay360 by Capita Explorer](https://developer.paypoint.com/payments/explore/#/register).
+This will give you access to a number of Pay360 products including the Mobile SDK in our MITE environment. MITE - Merchant Integration Test Environment - is a dedicated environment for merchants to explore our products and build their integration before go-live.  We'll send you an Installation ID for Cashier API once you have signed up which can be used with the Mobile SDK.
 Payments made through the Mobile SDK can be tracked in our MITE [Portal](https://portal.mite.paypoint.net:3443/portal-client/#/en_gb/log_in)
 
 ## Testing your application in the MITE environment
@@ -61,7 +61,7 @@ paymentManager = PaymentManager.getInstance(this)
         .setUrl(EndpointManager.getEndpointUrl(EndpointManager.Environment.MITE));
 ```
 
-Use EndpointManager.getEndpointUrl() to get the URL for a Pay360 by Capita environment.
+Use EndpointManager.getEndpointUrl() to get the URL for a Pay360 environment.
 
 Register a payment callback handler in OnResume and unregister the callback in OnPause to ensure your activity handles device orientation changes correctly if not locked to a single orientation.
 
@@ -186,7 +186,7 @@ public void paymentFailed(PaymentError paymentError)
 ```
 
 PaymentSuccess - has accessors for transaction id, merchant reference, amount, currency, last four digits of the card number and the masked card number.
-PaymentError – use getKind() to return the type of error. Pay360 by Capita errors contain a reasonCode and reasonMessage which can be used to feedback to the user.
+PaymentError – use getKind() to return the type of error. Pay360 errors contain a reasonCode and reasonMessage which can be used to feedback to the user.
 
 If a payment requires 3D Secure, an activity is automatically presented full screen. This activity will consists of a form that the user is expected to complete. Once the user completes this process the activity will dismiss and the payment will proceed.
 
