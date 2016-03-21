@@ -186,7 +186,7 @@ public void paymentFailed(PaymentError paymentError)
 ```
 
 PaymentSuccess - has accessors for transaction id, merchant reference, amount, currency, last four digits of the card number and the masked card number.
-PaymentError – use getKind() to return the type of error. PayPoint errors contain a reasonCode and reasonMessage which can be used to feedback to the user.
+PaymentError – use getKind() to return the type of error. Pay360 by Capita errors contain a reasonCode and reasonMessage which can be used to feedback to the user.
 
 If a payment requires 3D Secure, an activity is automatically presented full screen. This activity will consists of a form that the user is expected to complete. Once the user completes this process the activity will dismiss and the payment will proceed.
 
