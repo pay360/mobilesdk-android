@@ -132,7 +132,7 @@ request.setCustomFields(customFields);
 To submit an Authorisation instead of a Payment, call setAuthorisation() on the transaction.
 
 If this is the first payment or authorisation of a continuous authority sequence, you can indicate this using Transaction.setReccuring(). Subsequent repeats can be initiated using the "Repeat a Payment" call.
-Details can be found here. https://developer.paypoint.com/payments/docs/#payments/repeat_a_payment
+Details can be found here. https://paymentdeveloperdocs.com/cards/repeats/
 
 Financial services data and customer details can also optionally be created and set on the request.
 
