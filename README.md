@@ -136,7 +136,7 @@ Details can be found here. https://paymentdeveloperdocs.com/cards/repeats/
 
 Financial services data and customer details can also optionally be created and set on the request.
 
-For more details on the complete API see the [Javadocs](http://paypoint.github.io/javadocs/mobilesdk-android/)
+For more details on the complete API see the [Javadocs](http://pay360.github.io/javadocs/mobilesdk-android/)
 
 Validate the payment details handling the PaymentValidationException
 
