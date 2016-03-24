@@ -213,7 +213,7 @@ A set of test cards for MITE are available here: [MITE test cards](https://payme
 
 ## Javadoc
 
-Javadocs can be found [here](http://paypoint.github.io/javadocs/mobilesdk-android/)
+Javadocs can be found [here](http://pay360.github.io/javadocs/mobilesdk-android/)
 
 
 
