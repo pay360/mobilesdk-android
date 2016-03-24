@@ -136,7 +136,7 @@ Details can be found here. https://paymentdeveloperdocs.com/cards/repeats/
 
 Financial services data and customer details can also optionally be created and set on the request.
 
-For more details on the complete API see the [Javadocs](http://paypoint.github.io/javadocs/mobilesdk-android/)
+For more details on the complete API see the [Javadocs](http://pay360.github.io/javadocs/mobilesdk-android/)
 
 Validate the payment details handling the PaymentValidationException
 
@@ -213,7 +213,7 @@ A set of test cards for MITE are available here: [MITE test cards](https://payme
 
 ## Javadoc
 
-Javadocs can be found [here](http://paypoint.github.io/javadocs/mobilesdk-android/)
+Javadocs can be found [here](http://pay360.github.io/javadocs/mobilesdk-android/)
 
 
 
