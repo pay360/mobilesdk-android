@@ -32,6 +32,7 @@ import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowHandler;
 
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -83,8 +84,10 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
                 .setCurrency("GBP")
                 .setMerchantReference(UUID.randomUUID().toString());
 
+        String expiryDateInFuture = generateExpiryDateInFuture();
+
         card = new PaymentCard().setPan("9900000000005159").setCv2("123")
-                .setExpiryDate("1115");
+                .setExpiryDate(expiryDateInFuture);
 
         credentials = new PayPointCredentials().setInstallationId("1212312")
                 .setToken("VALID_TOKEN");
@@ -102,6 +105,15 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         pm.registerPaymentCallback(this);
 
         timestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * Generate an formatted (MMYY) expiry date one year ahead of the current date.
+     */
+    private String generateExpiryDateInFuture() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, 1);
+        return new SimpleDateFormat("MMyy").format(cal.getTime());
     }
 
     @Test
