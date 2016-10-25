@@ -88,9 +88,9 @@ uploadArchives {
                 pom.groupId = 'net.paypoint'
                 pom.artifactId = "mobilesdk-android"
                 pom.version = project.property('paypoint.maven.pom.version')
-                name 'PayPoint Advanced Payments SDK'
+                name 'Pay360 Advanced Payments SDK'
                 packaging 'aar'
-                description 'Library for making mobile payments with PayPoint'
+                description 'Library for making mobile payments with Pay360'
             }
         }
     }
