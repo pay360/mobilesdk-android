@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk.library.network;
@@ -17,9 +17,9 @@ import retrofit.http.Path;
 import rx.Observable;
 
 /**
- * PayPoint Retrofit REST service
+ * Pay360 Retrofit REST service
  */
-public interface PayPointService {
+public interface Pay360Service {
 
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST("/acceptor/rest/mobile/transactions/{installationId}/payment")

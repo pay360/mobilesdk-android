@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk.library.payment;
@@ -22,9 +22,9 @@ import com.pay360.sdk.library.exception.TransactionInProgressException;
 import com.pay360.sdk.library.exception.TransactionSuspendedFor3DSException;
 import com.pay360.sdk.library.network.EndpointManager;
 import com.pay360.sdk.library.network.NetworkManager;
-import com.pay360.sdk.library.network.PayPointService;
+import com.pay360.sdk.library.network.Pay360Service;
 import com.pay360.sdk.library.network.SelfSignedSocketFactory;
-import com.pay360.sdk.library.security.PayPointCredentials;
+import com.pay360.sdk.library.security.Credentials;
 import com.pay360.sdk.library.utils.Timer;
 import com.squareup.okhttp.OkHttpClient;
 
@@ -81,7 +81,7 @@ public class PaymentManager {
     private Context context;
     private int sessionTimeoutSeconds = DEFAULT_SESSION_TIMEOUT;
     private String url;
-    private PayPointCredentials credentials;
+    private Credentials credentials;
 
     // use a WeakReference to ensure calling activity can be GC'ed
     private WeakReference<PaymentManager.MakePaymentCallback> callback;
@@ -92,7 +92,7 @@ public class PaymentManager {
     private DeviceInfo deviceInfo;
     private String transactionId;
     private String operationId;
-    private PayPointService service;
+    private Pay360Service service;
     private String serviceServerUrl;
     private MakePaymentRequest makePaymentRequest;
     private ThreeDSResumeRequest threeDSResumeRequest;
@@ -179,7 +179,7 @@ public class PaymentManager {
         retryDelayTimer = new Timer(new RetryDelayTimeoutHandler(), DEFAULT_STATUS_BACKOFF, false);
     }
 
-    private PayPointService createService(String serverUrl)
+    private Pay360Service createService(String serverUrl)
         throws NoSuchAlgorithmException, KeyManagementException {
 
         // only create service once or if serverUrl changes
@@ -219,7 +219,7 @@ public class PaymentManager {
                     .setClient(new OkClient(httpClient))
                     .build();
 
-            service = adapter.create(PayPointService.class);
+            service = adapter.create(Pay360Service.class);
 
             serviceServerUrl = serverUrl;
         }
@@ -240,8 +240,8 @@ public class PaymentManager {
     }
 
     /**
-     * URL of the PayPoint server
-     * @param url the base url of the PayPoint server. The URL can be obtained from
+     * URL of the Pay360 server
+     * @param url the base url of the Pay360 server. The URL can be obtained from
      * {@link com.pay360.sdk.library.network.EndpointManager#getEndpointUrl(com.pay360.sdk.library.network.EndpointManager.Environment)}
      * @return PaymentManager for chaining
      */
@@ -251,11 +251,11 @@ public class PaymentManager {
     }
 
     /**
-     * Set PayPoint authentication credentials - retrieve these from a call to YOUR server
+     * Set authentication credentials - retrieve these from a call to YOUR server
      * @param credentials the credentials required to make a payment
      * @return PaymentManager for chaining
      */
-    public PaymentManager setCredentials(PayPointCredentials credentials) {
+    public PaymentManager setCredentials(Credentials credentials) {
         this.credentials = credentials;
         return this;
     }
@@ -331,7 +331,7 @@ public class PaymentManager {
      * <p>You must call these functions first:
      * <p>{@link #registerPaymentCallback(com.pay360.sdk.library.payment.PaymentManager.MakePaymentCallback)}
      * <p>{@link #setUrl(String)}
-     * <p>{@link #setCredentials(com.pay360.sdk.library.security.PayPointCredentials)}
+     * <p>{@link #setCredentials(Credentials)}
      *
      * @param request payment details
      * @throws PaymentValidationException incorrect payment details in the request.
@@ -614,7 +614,7 @@ public class PaymentManager {
 
     /**
      * Validates the payment request.
-     * Call this prior to going online to get PayPoint credentials for the call to {@link #makePayment(PaymentRequest)}
+     * Call this prior to going online to get credentials for the call to {@link #makePayment(PaymentRequest)}
      * to detect any errors in the payment form
      * @param request payment request
      * @throws PaymentValidationException error validating payment request

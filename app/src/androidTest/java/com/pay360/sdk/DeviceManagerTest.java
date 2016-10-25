@@ -1,12 +1,8 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk;
-
-/*
- * Copyright (c) 2015. PayPoint
- */
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -10,7 +10,7 @@ android {
         targetSdkVersion 21
         versionCode 1
         versionName "1.0.0"
-        archivesBaseName="paypoint_sdk"
+        archivesBaseName="pay360_sdk"
     }
     buildTypes {
         release {
@@ -43,7 +43,7 @@ android {
 android.libraryVariants.all { variant ->
 
     task("${variant.name}Javadoc", type: Javadoc) {
-        title = "PayPoint SDK $version API"
+        title = "Pay360 SDK $version API"
         description "Generates Javadoc for $variant.name."
         source = variant.javaCompile.source
         ext.androidJar =
@@ -64,7 +64,7 @@ android.libraryVariants.all { variant ->
         exclude '**/PaymentMethod.java'
         exclude '**/DeviceInfo.java'
         exclude '**/NetworkManager.java'
-        exclude '**/PayPointService.java'
+        exclude '**/Pay360Service.java'
         exclude '**/SelfSignedSocketFactory.java'
     }
 }

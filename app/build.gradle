@@ -5,7 +5,7 @@ android {
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "com.paypoint.sdk"
+        applicationId "com.pay360.sdk"
         minSdkVersion 18
         targetSdkVersion 21
         versionCode 1

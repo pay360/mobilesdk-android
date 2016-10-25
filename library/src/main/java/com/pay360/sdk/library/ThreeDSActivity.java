@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk.library;
@@ -37,20 +37,20 @@ import java.util.List;
  */
 public class ThreeDSActivity extends ActionBarActivity {
 
-    public static final String ACTION_COMPLETED                 = "com.paypoint.sdk.library.ACTION_COMPLETED";
-    public static final String EXTRA_SUCCESS                    = "com.paypoint.sdk.library.EXTRA_SUCCESS";
+    public static final String ACTION_COMPLETED                 = "com.pay360.sdk.library.ACTION_COMPLETED";
+    public static final String EXTRA_SUCCESS                    = "com.pay360.sdk.library.EXTRA_SUCCESS";
 
-    public static final String EXTRA_ACS_URL                    = "com.paypoint.sdk.library.EXTRA_ACS_URL";
-    public static final String EXTRA_TERM_URL                   = "com.paypoint.sdk.library.EXTRA_TERM_URL";
-    public static final String EXTRA_PAREQ                      = "com.paypoint.sdk.library.EXTRA_PAREQ";
-    public static final String EXTRA_MD                         = "com.paypoint.sdk.library.EXTRA_MD";
-    public static final String EXTRA_SESSION_TIMEOUT            = "com.paypoint.sdk.library.EXTRA_SESSION_TIMEOUT";
-    public static final String EXTRA_REDIRECT_TIMEOUT           = "com.paypoint.sdk.library.EXTRA_REDIRECT_TIMEOUT";
-    public static final String EXTRA_PARES                      = "com.paypoint.sdk.library.EXTRA_PARES";
-    public static final String EXTRA_TRANSACTION_ID             = "com.paypoint.sdk.library.EXTRA_TRANSACTION_ID";
-    public static final String EXTRA_HAS_TIMED_OUT              = "com.paypoint.sdk.library.EXTRA_HAS_TIMED_OUT";
-    public static final String EXTRA_CANCELLED                  = "com.paypoint.sdk.library.TRANSACTION_CANCELLED";
-    public static final String EXTRA_ALLOW_SELF_SIGNED_CERTS    = "com.paypoint.sdk.library.EXTRA_ALLOW_SELF_SIGNED_CERTS";
+    public static final String EXTRA_ACS_URL                    = "com.pay360.sdk.library.EXTRA_ACS_URL";
+    public static final String EXTRA_TERM_URL                   = "com.pay360.sdk.library.EXTRA_TERM_URL";
+    public static final String EXTRA_PAREQ                      = "com.pay360.sdk.library.EXTRA_PAREQ";
+    public static final String EXTRA_MD                         = "com.pay360.sdk.library.EXTRA_MD";
+    public static final String EXTRA_SESSION_TIMEOUT            = "com.pay360.sdk.library.EXTRA_SESSION_TIMEOUT";
+    public static final String EXTRA_REDIRECT_TIMEOUT           = "com.pay360.sdk.library.EXTRA_REDIRECT_TIMEOUT";
+    public static final String EXTRA_PARES                      = "com.pay360.sdk.library.EXTRA_PARES";
+    public static final String EXTRA_TRANSACTION_ID             = "com.pay360.sdk.library.EXTRA_TRANSACTION_ID";
+    public static final String EXTRA_HAS_TIMED_OUT              = "com.pay360.sdk.library.EXTRA_HAS_TIMED_OUT";
+    public static final String EXTRA_CANCELLED                  = "com.pay360.sdk.library.TRANSACTION_CANCELLED";
+    public static final String EXTRA_ALLOW_SELF_SIGNED_CERTS    = "com.pay360.sdk.library.EXTRA_ALLOW_SELF_SIGNED_CERTS";
 
     private static final String JAVASCRIPT_INTERFACE = "paypoint";
 

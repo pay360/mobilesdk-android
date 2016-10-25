@@ -1,6 +1,6 @@
 {
     "customer" : {
-      "email" : "test@paypoint.com",
+      "email" : "test@example.com",
       "dob" : "1900-01-01",
       "telephone" : "01225 123456"
     }

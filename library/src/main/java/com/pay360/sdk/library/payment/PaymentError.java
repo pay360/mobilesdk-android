@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk.library.payment;
@@ -66,7 +66,7 @@ public class PaymentError {
         TRANSACTION_DECLINED(5, true),
 
         /**
-         * An internal server error occurred at PayPoint
+         * An internal server error occurred
          */
         SERVER_ERROR(6, false),
 

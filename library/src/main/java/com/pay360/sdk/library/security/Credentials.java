@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk.library.security;
@@ -9,21 +9,21 @@ import android.text.TextUtils;
 import com.pay360.sdk.library.exception.InvalidCredentialsException;
 
 /**
- * Credentials required for PayPoint authentication - retrieve these will a call to YOUR server
- * then pass into {@link com.pay360.sdk.library.payment.PaymentManager#setCredentials(PayPointCredentials)} )}
+ * Credentials required for Pay360 authentication - retrieve these will a call to YOUR server
+ * then pass into {@link com.pay360.sdk.library.payment.PaymentManager#setCredentials(Credentials)} )}
  */
-public class PayPointCredentials {
+public class Credentials {
 
     private String installationId;
 
     private String token;
 
-    public PayPointCredentials setInstallationId(String installationId) {
+    public Credentials setInstallationId(String installationId) {
         this.installationId = installationId;
         return this;
     }
 
-    public PayPointCredentials setToken(String token) {
+    public Credentials setToken(String token) {
         this.token = token;
         return this;
     }

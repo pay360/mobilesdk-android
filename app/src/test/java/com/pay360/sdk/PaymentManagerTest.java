@@ -18,7 +18,7 @@ import com.pay360.sdk.library.payment.CustomerDetails;
 import com.pay360.sdk.library.payment.FinancialServices;
 import com.pay360.sdk.library.payment.PaymentCard;
 import com.pay360.sdk.library.payment.Transaction;
-import com.pay360.sdk.library.security.PayPointCredentials;
+import com.pay360.sdk.library.security.Credentials;
 
 import junit.framework.Assert;
 
@@ -51,7 +51,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     private PaymentManager pm;
     private Transaction transaction;
     private PaymentCard card;
-    private PayPointCredentials credentials;
+    private Credentials credentials;
     private int responseTimeout;
     private PaymentRequest request;
     private PaymentSuccess responseSuccess;
@@ -85,7 +85,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         card = new PaymentCard().setPan("9900000000005159").setCv2("123")
                 .setExpiryDate(expiryDateInFuture);
 
-        credentials = new PayPointCredentials().setInstallationId("1212312")
+        credentials = new Credentials().setInstallationId("1212312")
                 .setToken("VALID_TOKEN");
 
         responseTimeout = 10;//TIMEOUT_SIXTY_SECONDS;
@@ -463,7 +463,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     }
 
     @Test
-    public void testNullPayPointCredentials() throws Exception {
+    public void testNullCredentials() throws Exception {
         pm.setCredentials(null);
 
         try {
@@ -475,7 +475,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     }
 
     @Test
-    public void testEmptyTokenPayPointCredentials() throws Exception {
+    public void testEmptyTokenInCredentials() throws Exception {
         credentials.setToken(null);
 
         try {
@@ -487,7 +487,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     }
 
     @Test
-    public void testEmptyInstallationIdPayPointCredentials() throws Exception {
+    public void testEmptyInstallationIdInCredentials() throws Exception {
         credentials.setInstallationId(null);
 
         try {
@@ -541,7 +541,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
     public void testCustomerDetails() throws Exception {
 
         CustomerDetails customerDetails = new CustomerDetails()
-                .setEmail("test@paypoint.com")
+                .setEmail("test@example.com")
                 .setDateOfBirth("1900-01-01")
                 .setTelephone("01225 123456");
 
@@ -663,7 +663,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         pm.setSessionTimeout(responseTimeout);
 
         // "9900000000000267" will Simulate a network failure on the initial payment
-        // after the payment was received by PayPoint (i.e. payment will be processed)
+        // after the payment was received (i.e. payment will be processed)
         card.setPan("9900000000000267");
 
         makePayment();
@@ -679,7 +679,7 @@ public class PaymentManagerTest implements PaymentManager.MakePaymentCallback {
         pm.setSessionTimeout(responseTimeout);
 
         // "9900000000000366" will Simulate a network failure on the initial payment
-        // before the payment was received by PayPoint (payment will not have been processed)
+        // before the payment was received (payment will not have been processed)
         card.setPan("9900000000000366");
 
         makePayment();

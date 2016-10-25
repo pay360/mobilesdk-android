@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk;
@@ -62,7 +62,7 @@ public class MakePaymentRequestTest  {
 
         request.setCustomer(new CustomerDetails()
                 .setDateOfBirth("1900-01-01")
-                .setEmail("test@paypoint.com")
+                .setEmail("test@example.com")
                 .setTelephone("01225 123456"));
 
         Gson gson = new Gson();

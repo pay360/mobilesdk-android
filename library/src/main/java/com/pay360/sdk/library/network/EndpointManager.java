@@ -1,23 +1,23 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2016 Capita plc
  */
 
 package com.pay360.sdk.library.network;
 
 /**
- * Manager for getting endpoints for different PayPoint environments
+ * Manager for getting endpoints for different Pay360 environments
  */
 public class EndpointManager {
 
     public enum Environment {
 
         /**
-         * PayPoint Mite environment
+         * Mite environment
          */
         MITE("https://api.mite.paypoint.net:2443"),
 
         /**
-         * PayPoint Production environment
+         * Production environment
          */
         PRODUCTION("https://api.paypoint.net");
 
@@ -29,8 +29,8 @@ public class EndpointManager {
     }
 
     /**
-     * Get the endpoint URL for given PayPoint environment
-     * @param environment The PayPoint environment
+     * Get the endpoint URL for given Pay360 environment
+     * @param environment The Pay360 environment
      * @return Endpoint URL
      */
     public static String getEndpointUrl(Environment environment) {
@@ -38,11 +38,11 @@ public class EndpointManager {
     }
 
     /**
-     * Checks if URL matches a PayPoint environment URL
+     * Checks if URL matches a Pay360 environment URL
      * @param url URL to test
-     * @return true if PayPoint URL
+     * @return true if Pay360 URL
      */
-    public static boolean isPayPointUrl(String url) {
+    public static boolean isPay360Url(String url) {
         for (Environment environment :Environment.values()) {
             // check if URL matches environment URL
             if (url.equals(environment.url)) {
@@ -54,11 +54,11 @@ public class EndpointManager {
     }
 
     /**
-     * Checks if URL is a custom URL i.e. does not matches an PayPoint environment URL
+     * Checks if URL is a custom URL i.e. does not match an Pay360 environment URL
      * @param url URL to test
      * @return true if custom URL
      */
     public static boolean isCustomUrl(String url) {
-        return !isPayPointUrl(url);
+        return !isPay360Url(url);
     }
 }

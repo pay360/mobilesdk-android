@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. PayPoint
+ * Copyright (c) 2015. Pay360
  */
 
 package com.pay360.sdk.library.exception;
@@ -52,12 +52,12 @@ public class PaymentValidationException extends Exception {
         NETWORK_NO_CONNECTION,
 
         /**
-         * Credentials missing (PayPoint token or installation id)
+         * Credentials missing (token or installation id)
          */
         INVALID_CREDENTIALS,
 
         /**
-         * PayPoint server URL not passed in
+         * Server URL not passed in
          */
         INVALID_URL,
 
