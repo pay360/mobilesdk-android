@@ -74,20 +74,20 @@ uploadArchives {
     configuration = configurations.archives
     repositories.mavenDeployer {
 
-        if (project.hasProperty('paypoint.maven.repo')) {
+        if (project.hasProperty('pay360.maven.repo')) {
             repository(url: project.property('paypoint.maven.repo')) {
 
-                if (project.hasProperty('paypoint.maven.repo.username') &&
-                    project.hasProperty('paypoint.maven.repo.password')) {
-                    authentication(userName: project.property('paypoint.maven.repo.username'),
-                            password: project.property('paypoint.maven.repo.password'))
+                if (project.hasProperty('pay360.maven.repo.username') &&
+                    project.hasProperty('pay360.maven.repo.password')) {
+                    authentication(userName: project.property('pay360.maven.repo.username'),
+                            password: project.property('pay360.maven.repo.password'))
                 }
             }
 
             pom.project {
                 pom.groupId = 'net.paypoint'
                 pom.artifactId = "mobilesdk-android"
-                pom.version = project.property('paypoint.maven.pom.version')
+                pom.version = project.property('pay360.maven.pom.version')
                 name 'Pay360 Advanced Payments SDK'
                 packaging 'aar'
                 description 'Library for making mobile payments with Pay360'
