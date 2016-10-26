@@ -15,7 +15,7 @@ Add the following to the gradle build repositories
 And the following to the module gradle build dependencies
 
 ```groovy
-    compile 'net.paypoint:mobilesdk-android:1.0.0'
+    compile 'com.pay360:mobilesdk-android:1.0.0'
 ```
 
 In the module gradle build set minSdkVersion to 14 or above.
@@ -136,7 +136,7 @@ Details can be found here. https://developer.paypoint.com/payments/docs/#payment
 
 Financial services data and customer details can also optionally be created and set on the request.
 
-For more details on the complete API see the [Javadocs](http://paypoint.github.io/javadocs/mobilesdk-android/)
+For more details on the complete API see the [Javadocs](http://pay360.github.io/javadocs/mobilesdk-android/)
 
 Validate the payment details handling the PaymentValidationException
 

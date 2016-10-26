@@ -79,7 +79,6 @@ public class Transaction {
     /**
      * Call if the first payment or authorisation of a continuous authority sequence.
      * Subsequent repeats can be initiated using the "Repeat a Payment" call.
-     * Details can be found here https://developer.paypoint.com/payments/docs/#payments/repeat_a_payment
      */
     public void setRecurring() {
         this.recurring = true;
