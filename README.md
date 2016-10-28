@@ -9,7 +9,7 @@ At minimum Android 4.0 (API level 14)
 Add the following to the gradle build repositories
 
 ```groovy
-    maven { url 'https://github.com/payp360/maven-repo/raw/master' }
+    maven { url 'https://github.com/pay360/maven-repo/raw/master' }
 ```
 
 And the following to the module gradle build dependencies
