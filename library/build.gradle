@@ -75,7 +75,7 @@ uploadArchives {
     repositories.mavenDeployer {
 
         if (project.hasProperty('pay360.maven.repo')) {
-            repository(url: project.property('paypoint.maven.repo')) {
+            repository(url: project.property('pay360.maven.repo')) {
 
                 if (project.hasProperty('pay360.maven.repo.username') &&
                     project.hasProperty('pay360.maven.repo.password')) {
@@ -85,7 +85,7 @@ uploadArchives {
             }
 
             pom.project {
-                pom.groupId = 'net.paypoint'
+                pom.groupId = 'com.pay360'
                 pom.artifactId = "mobilesdk-android"
                 pom.version = project.property('pay360.maven.pom.version')
                 name 'Pay360 Advanced Payments SDK'

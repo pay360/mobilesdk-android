@@ -14,12 +14,12 @@ public class EndpointManager {
         /**
          * Mite environment
          */
-        MITE("https://api.mite.paypoint.net:2443"),
+        MITE("https://mobileapi.mite.pay360.com"),
 
         /**
          * Production environment
          */
-        PRODUCTION("https://api.paypoint.net");
+        PRODUCTION("https://mobileapi.pay360.com");
 
         String url;
 

@@ -15,13 +15,13 @@ public class EndpointManagerTest extends TestCase {
 
     @Test
     public void testMiteUrl()  {
-        Assert.assertEquals("https://api.mite.paypoint.net:2443",
+        Assert.assertEquals("https://mobileapi.mite.pay360.com",
                 EndpointManager.getEndpointUrl(EndpointManager.Environment.MITE));
     }
 
     @Test
     public void testProductionUrl()  {
-        Assert.assertEquals("https://api.paypoint.net",
+        Assert.assertEquals("https://mobileapi.pay360.com",
                 EndpointManager.getEndpointUrl(EndpointManager.Environment.PRODUCTION));
     }
 }
