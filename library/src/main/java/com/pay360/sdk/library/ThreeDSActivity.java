@@ -52,7 +52,7 @@ public class ThreeDSActivity extends ActionBarActivity {
     public static final String EXTRA_CANCELLED                  = "com.pay360.sdk.library.TRANSACTION_CANCELLED";
     public static final String EXTRA_ALLOW_SELF_SIGNED_CERTS    = "com.pay360.sdk.library.EXTRA_ALLOW_SELF_SIGNED_CERTS";
 
-    private static final String JAVASCRIPT_INTERFACE = "paypoint";
+    private static final String JAVASCRIPT_INTERFACE = "threeDSecureResponse";
 
     private static final long TIMEOUT_JAVASCRIPT = 5000;
 
