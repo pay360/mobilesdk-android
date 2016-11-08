@@ -34,14 +34,14 @@ Add the following to your AndroidManifest.xml
 
 ## Register
 
-You can sign up for a Pay360 Explorer account at [Pay360 Explorer](https://developer.paypoint.com/payments/explore/#/register).
+You can sign up for a Pay360 Explorer account at [Pay360 Explorer](https://paymentdeveloperdocs.com/explorer-account/).
 This will give you access to a number of Pay360 products including the Mobile SDK in our MITE environment. MITE - Merchant Integration Test Environment - is a dedicated environment for merchants to explore our products and build their integration before go-live.  We'll send you an Installation ID for Cashier API once you have signed up which can be used with the Mobile SDK.
-Payments made through the Mobile SDK can be tracked in our MITE [Portal](https://portal.mite.paypoint.net:3443/portal-client/#/en_gb/log_in)
+Payments made through the Mobile SDK can be tracked in our MITE [Portal](https://portal.mite.pay360.com/ngportal/#/login)
 
 ## Testing your application in the MITE environment
 
 In order to make payments in MITE your server must obtain a client access token.  The client access token will be used by your app to submit payments.
-Instructions for doing this are available [here](https://developer.paypoint.com/payments/docs/#getting_started/using_our_sdks)
+Instructions for doing this are available [here](https://paymentdeveloperdocs.com/using_our_sdks/)
 
 For convenience we provide a mock REST api which supplies these tokens for your MITE installations which can be used for prototyping your app.
 
@@ -132,7 +132,7 @@ request.setCustomFields(customFields);
 To submit an Authorisation instead of a Payment, call setAuthorisation() on the transaction.
 
 If this is the first payment or authorisation of a continuous authority sequence, you can indicate this using Transaction.setReccuring(). Subsequent repeats can be initiated using the "Repeat a Payment" call.
-Details can be found here. https://developer.paypoint.com/payments/docs/#payments/repeat_a_payment
+Details can be found here. https://paymentdeveloperdocs.com/cards/repeats/
 
 Financial services data and customer details can also optionally be created and set on the request.
 
@@ -209,7 +209,7 @@ The function getTransactionStatus will use the same callback mechanism as makePa
 
 ## Test Cards
 
-A set of test cards for MITE are available here: [MITE test cards](https://developer.paypoint.com/payments/docs/#getting_started/test_cards)
+A set of test cards for MITE are available here: [MITE test cards](https://paymentdeveloperdocs.com/test_card_numbers/)
 
 ## Javadoc
 
