@@ -10,7 +10,7 @@ android {
         targetSdkVersion 21
         versionCode 1
         versionName "1.0.0"
-        archivesBaseName="paypoint_sdk"
+        archivesBaseName="pay360_sdk"
     }
     buildTypes {
         release {
@@ -43,7 +43,7 @@ android {
 android.libraryVariants.all { variant ->
 
     task("${variant.name}Javadoc", type: Javadoc) {
-        title = "PayPoint SDK $version API"
+        title = "Pay360 SDK $version API"
         description "Generates Javadoc for $variant.name."
         source = variant.javaCompile.source
         ext.androidJar =
@@ -64,7 +64,7 @@ android.libraryVariants.all { variant ->
         exclude '**/PaymentMethod.java'
         exclude '**/DeviceInfo.java'
         exclude '**/NetworkManager.java'
-        exclude '**/PayPointService.java'
+        exclude '**/Pay360Service.java'
         exclude '**/SelfSignedSocketFactory.java'
     }
 }
@@ -74,23 +74,23 @@ uploadArchives {
     configuration = configurations.archives
     repositories.mavenDeployer {
 
-        if (project.hasProperty('paypoint.maven.repo')) {
-            repository(url: project.property('paypoint.maven.repo')) {
+        if (project.hasProperty('pay360.maven.repo')) {
+            repository(url: project.property('pay360.maven.repo')) {
 
-                if (project.hasProperty('paypoint.maven.repo.username') &&
-                    project.hasProperty('paypoint.maven.repo.password')) {
-                    authentication(userName: project.property('paypoint.maven.repo.username'),
-                            password: project.property('paypoint.maven.repo.password'))
+                if (project.hasProperty('pay360.maven.repo.username') &&
+                    project.hasProperty('pay360.maven.repo.password')) {
+                    authentication(userName: project.property('pay360.maven.repo.username'),
+                            password: project.property('pay360.maven.repo.password'))
                 }
             }
 
             pom.project {
-                pom.groupId = 'net.paypoint'
+                pom.groupId = 'com.pay360'
                 pom.artifactId = "mobilesdk-android"
-                pom.version = project.property('paypoint.maven.pom.version')
-                name 'PayPoint Advanced Payments SDK'
+                pom.version = project.property('pay360.maven.pom.version')
+                name 'Pay360 Advanced Payments SDK'
                 packaging 'aar'
-                description 'Library for making mobile payments with PayPoint'
+                description 'Library for making mobile payments with Pay360'
             }
         }
     }
