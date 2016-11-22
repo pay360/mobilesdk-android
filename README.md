@@ -15,7 +15,7 @@ Add the following to the gradle build repositories
 And the following to the module gradle build dependencies
 
 ```groovy
-    compile 'net.paypoint:mobilesdk-android:1.0.0'
+    compile 'com.pay360:mobilesdk-android:2.0.0'
 ```
 
 In the module gradle build set minSdkVersion to 14 or above.
