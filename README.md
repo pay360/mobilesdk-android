@@ -1,6 +1,6 @@
 # Pay360 Advanced Payments Android SDK
 
-*Please note that this mobile SDK is no longer maintained or supported*
+**Please note that this mobile SDK is no longer maintained or supported**
 
 ## Requirements
 
