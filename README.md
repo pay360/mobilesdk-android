@@ -1,5 +1,7 @@
 # Pay360 Advanced Payments Android SDK
 
+*Please note that this mobile SDK is no longer maintained or supported*
+
 ## Requirements
 
 At minimum Android 4.0 (API level 14)
